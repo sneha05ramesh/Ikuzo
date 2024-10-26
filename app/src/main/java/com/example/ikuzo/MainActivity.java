@@ -28,8 +28,8 @@ public class MainActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-//                startActivity(intent);
+                Intent intent = new Intent(MainActivity.this, Login.class);
+                startActivity(intent);
                 Toast.makeText(getApplication().getBaseContext(),"Clicked Login Button", Toast.LENGTH_SHORT).show();
             }
 

@@ -32,6 +32,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -176,10 +177,11 @@ public class Register extends AppCompatActivity {
                     FirebaseUser firebaseUser = auth.getCurrentUser();
 
                     // Update Display Name of User
-                    
+                    UserProfileChangeRequest profileChangeRequest = new UserProfileChangeRequest.Builder().setDisplayName(textFullName).build();
+                    firebaseUser.updateProfile(profileChangeRequest);
 
                     // Enter User Data into the Firebase Realtime Database
-                    ReadWriteUserDetails writeUserDetails = new ReadWriteUserDetails(textFullName, textDoB, textGender, textMobile);
+                    ReadWriteUserDetails writeUserDetails = new ReadWriteUserDetails(textDoB, textGender, textMobile);
 
                     // Extracting User Reference from Database for " Registered Users "
                     DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");

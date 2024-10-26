@@ -1,9 +1,10 @@
 package com.example.ikuzo;
 
 public class ReadWriteUserDetails {
-    public String fullName, dob, gender, mobile;
-    public ReadWriteUserDetails(String textFullName,String textDoB, String textGender, String textMobile){
-        this.fullName = textFullName;
+    public String dob, gender, mobile;
+    // No-argument constructor required for Firebase
+    public ReadWriteUserDetails() {}
+    public ReadWriteUserDetails(String textDoB, String textGender, String textMobile){
         this.dob = textDoB;
         this.gender = textGender;
         this.mobile = textMobile;
