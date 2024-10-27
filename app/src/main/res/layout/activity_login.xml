@@ -52,12 +52,20 @@
             android:padding="6dp"
             android:textColor="#555555"
             android:textSize="16sp"/>
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="32dp"
+            android:id="@+id/imageView_show_hide_pwd"
+            android:layout_below="@id/textView_login_pwd">
+        </ImageView>
+
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/editText_login_pwd"
             android:layout_below="@id/textView_login_pwd"
             android:hint="Enter password"
+            android:layout_marginStart="30dp"
             android:inputType="textPassword"
             android:padding="6dp"
             android:textSize="16sp"
@@ -69,6 +77,14 @@
             android:id="@+id/button_login"
             android:layout_below="@id/editText_login_pwd"
             android:layout_marginTop="50dp"
+            android:layout_marginRight="70dp"
+            android:layout_marginLeft="70dp"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Forgot Password"
+            android:id="@+id/button_forgot_password"
+            android:layout_below="@id/button_login"
             android:layout_marginRight="70dp"
             android:layout_marginLeft="70dp"/>
         <ProgressBar
