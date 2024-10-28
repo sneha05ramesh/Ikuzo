@@ -112,9 +112,11 @@ public class Login extends AppCompatActivity {
                     // get current user instance
                     FirebaseUser firebaseUser = authProfile.getCurrentUser();
 
-
                     if(firebaseUser.isEmailVerified()){
                         Toast.makeText(Login.this, "You are logged in now!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(Login.this, Dashboard.class);
+                        startActivity(intent);
+                        finish(); // Closes the login activity so the user cannot go back to it
                     }else{
                         firebaseUser.sendEmailVerification();
                         authProfile.signOut();

@@ -6,4 +6,10 @@
     </style>
 
     <style name="Theme.Ikuzo" parent="Base.Theme.Ikuzo" />
+    <style name="Theme.Ikuzo.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="Theme.Ikuzo.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.Ikuzo.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

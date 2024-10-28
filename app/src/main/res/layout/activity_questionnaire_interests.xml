@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Questionnaire_Interests">
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Interests Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Interests"
+                android:paddingBottom="8dp"
+                android:textAppearance="@style/TextAppearance.AppCompat.Headline"/>
+
+            <CheckBox
+                android:id="@+id/check_sightseeing"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sightseeing"/>
+
+            <CheckBox
+                android:id="@+id/check_shopping"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shopping"/>
+
+            <CheckBox
+                android:id="@+id/check_beach"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Beach and water activities"/>
+
+            <CheckBox
+                android:id="@+id/check_partying"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Partying"/>
+
+            <CheckBox
+                android:id="@+id/check_museums"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Museums and Cultural sites"/>
+
+            <!-- Food Preferences Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Food preferences"
+                android:textSize="18sp"
+                android:paddingTop="16dp"
+                android:paddingBottom="8dp"/>
+
+            <RadioGroup
+                android:id="@+id/radioGroup_food"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/radio_vegan"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Vegan"/>
+
+                <RadioButton
+                    android:id="@+id/radio_seafood"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Seafood"/>
+
+                <RadioButton
+                    android:id="@+id/radio_street_food"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Street food"/>
+
+                <RadioButton
+                    android:id="@+id/radio_traditional"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Local / Traditional"/>
+
+                <RadioButton
+                    android:id="@+id/radio_no_preference"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No preference"/>
+            </RadioGroup>
+
+            <!-- Preferred Mode of Transport Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Preferred mode of transport"
+                android:textSize="18sp"
+                android:paddingTop="16dp"
+                android:paddingBottom="8dp"/>
+
+            <RadioGroup
+                android:id="@+id/radioGroup_transport"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/radio_car"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Car"/>
+
+                <RadioButton
+                    android:id="@+id/radio_public_transport"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Public transport"/>
+
+                <RadioButton
+                    android:id="@+id/radio_rideshare"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rideshare (Uber/Lyft)"/>
+            </RadioGroup>
+
+            <!-- Submit Button -->
+            <Button
+                android:id="@+id/button_submit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Submit"
+                android:layout_marginTop="16dp"/>
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

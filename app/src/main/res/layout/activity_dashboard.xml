@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Dashboard">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+        <!-- Welcome message -->
+        <TextView
+            android:id="@+id/welcomeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to Ikuzo!"
+            android:textSize="24sp"
+            android:layout_centerHorizontal="true"/>
+
+        <!-- User Information -->
+        <TextView
+            android:id="@+id/userInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/welcomeText"
+            android:layout_marginTop="20dp"
+            android:layout_centerHorizontal="true"
+            android:text="User Info: "
+            android:textSize="18sp" />
+
+        <!-- Floating Action Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_add_trip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="150dp"
+            android:src="@drawable/ic_plus_button"
+            app:backgroundTint="@color/light_gray"
+            android:contentDescription="Add Trip Button" />
+
+        <!-- Dashboard Buttons -->
+        <Button
+            android:id="@+id/buttonItinerary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/userInfo"
+            android:layout_marginTop="30dp"
+            android:layout_centerHorizontal="true"
+            android:text="View Itinerary" />
+
+        <Button
+            android:id="@+id/buttonPreferences"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/buttonItinerary"
+            android:layout_marginTop="20dp"
+            android:layout_centerHorizontal="true"
+            android:text="Set Preferences" />
+
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
