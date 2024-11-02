@@ -56,6 +56,7 @@ public class Questionnaire_Interests extends AppCompatActivity {
         // Submit button click listener
         submitButton.setOnClickListener(v -> savePreferences());
     }
+
     private void savePreferences() {
         // Collect interests
         Map<String, Boolean> interests = new HashMap<>();
@@ -78,28 +79,36 @@ public class Questionnaire_Interests extends AppCompatActivity {
         // Convert to string
         String selectedInterestsString = selectedInterests.toString();
 
-        // Collect food and transport preferences
+        // Collect food preference
         int selectedFoodId = radioGroupFood.getCheckedRadioButtonId();
         String foodPreference = selectedFoodId != -1 ? ((RadioButton) findViewById(selectedFoodId)).getText().toString() : "No preference";
 
+        // Collect transport preference
         int selectedTransportId = radioGroupTransport.getCheckedRadioButtonId();
         String transportPreference = selectedTransportId != -1 ? ((RadioButton) findViewById(selectedTransportId)).getText().toString() : "No preference";
 
+//        // Save data to Firebase
+//        databaseReference.child("interests").setValue(interests);
+//        databaseReference.child("foodPreference").setValue(foodPreference);
+//        databaseReference.child("transportPreference").setValue(transportPreference)
+//                .addOnSuccessListener(aVoid -> {
+//                    Toast.makeText(Questionnaire_Interests.this, "Preferences saved successfully!", Toast.LENGTH_SHORT).show();
+//                    // Navigate to the next screen (e.g., recommendations page)
+//
+//
+//                })
+//                .addOnFailureListener(e -> Toast.makeText(Questionnaire_Interests.this, "Failed to save preferences.", Toast.LENGTH_SHORT).show());
+
+
         // Get data from Intent
         Intent intent = getIntent();
-        String dateStart = intent.getStringExtra("STARTDATE");
-        String dateEnd = intent.getStringExtra("ENDDATE");
+        String dateStart= intent.getStringExtra("STARTDATE");
+        String dateEnd= intent.getStringExtra("ENDDATE");
         String location = intent.getStringExtra("LOCATION");
-
-        // Create intent for next activity
-        Intent locationIntent = new Intent(Questionnaire_Interests.this, LocationSelectionActivity.class);
-        locationIntent.putExtra("LOCATION", location);
-        locationIntent.putExtra("INTERESTS", selectedInterestsString);
-        locationIntent.putExtra("FOOD_PREFERENCE", foodPreference);
-        locationIntent.putExtra("TRANSPORT_PREFERENCE", transportPreference);
-        startActivity(locationIntent);
+        // Display a Toast with all data
+        String summary = "Trip Dates: " + dateStart + " - " + dateEnd + "\nLocation: " + location +
+                "\nInterests: " + selectedInterestsString + "\nFood Preference: " + foodPreference +
+                "\nTransport: " + transportPreference;
+        Toast.makeText(Questionnaire_Interests.this, summary, Toast.LENGTH_SHORT).show();
     }
-
-
-
 }
