@@ -168,7 +168,9 @@ public class Login extends AppCompatActivity {
         super.onStart();
         if(authProfile.getCurrentUser() != null){
             Toast.makeText(Login.this, "Already logged in!", Toast.LENGTH_SHORT).show();
-
+            Intent intent = new Intent(Login.this, Dashboard.class);
+            startActivity(intent);
+            finish();
             // Start the User Profile Activity
 //            startActivity(new Intent(Login.this, UserProfileActivity.class));
 //            finish();

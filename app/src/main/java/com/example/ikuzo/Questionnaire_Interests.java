@@ -110,5 +110,13 @@ public class Questionnaire_Interests extends AppCompatActivity {
                 "\nInterests: " + selectedInterestsString + "\nFood Preference: " + foodPreference +
                 "\nTransport: " + transportPreference;
         Toast.makeText(Questionnaire_Interests.this, summary, Toast.LENGTH_SHORT).show();
+
+        // Create intent for next activity
+        Intent locationIntent = new Intent(Questionnaire_Interests.this, LocationSelector.class);
+        locationIntent.putExtra("LOCATION", location);
+        locationIntent.putExtra("INTERESTS", selectedInterestsString);
+        locationIntent.putExtra("FOOD_PREFERENCE", foodPreference);
+        locationIntent.putExtra("TRANSPORT_PREFERENCE", transportPreference);
+        startActivity(locationIntent);
     }
 }
