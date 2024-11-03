@@ -1,10 +1,8 @@
 package com.example.ikuzo;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,13 +11,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -29,11 +25,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.CircularBounds;
-import com.google.android.libraries.places.api.model.LocationRestriction;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.PlaceLikelihood;
-import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest;
-import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.api.net.SearchNearbyRequest;
 import com.google.android.libraries.places.api.net.SearchNearbyResponse;
@@ -208,6 +200,18 @@ public class LocationSelector extends AppCompatActivity {
                         .map(Place::getName)
                         .collect(Collectors.joining(", "));
                 Toast.makeText(this, "Selected places: " + selectedPlacesNames, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(LocationSelector.this, ItineraryList.class);
+                ArrayList<LatLng> latLngList = new ArrayList<>();
+
+                for (Place place : placesList) {
+                    LatLng latLng = place.getLatLng(); // Get LatLng from Place
+                    if (latLng != null) {
+                        latLngList.add(latLng); // Add LatLng to the ArrayList
+                    }
+                }
+
+                intent.putExtra("LOCATIONS", latLngList); // List of LatLng points
+                startActivity(intent);
             } else {
                 Toast.makeText(this, "No places selected!", Toast.LENGTH_SHORT).show();
             }
