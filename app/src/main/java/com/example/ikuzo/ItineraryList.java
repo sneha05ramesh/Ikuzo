@@ -4,6 +4,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
+import android.widget.AdapterView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,6 +24,7 @@ import java.util.List;
 
 public class ItineraryList extends AppCompatActivity implements OnMapReadyCallback {
 
+    private Spinner daySelector;
     private MapView mapView;
     private GoogleMap googleMap;
     private List<List<LatLng>> dailyItineraries;
@@ -45,11 +50,96 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
         // Split locations into daily itineraries
         dailyItineraries = splitLocationsByDays(locations, days);
 
+        // Initialize Spinner
+        setupDaySelector();
+        
         // Initialize MapView
         mapView = findViewById(R.id.mapView);
         Bundle mapViewBundle = savedInstanceState != null ? savedInstanceState.getBundle(MAP_VIEW_BUNDLE_KEY) : null;
         mapView.onCreate(mapViewBundle);
         mapView.getMapAsync(this);
+    }
+
+    private void setupDaySelector() {
+        daySelector = findViewById(R.id.daySelector);
+        List<String> dayOptions = new ArrayList<>();
+        dayOptions.add("All Days");
+        for (int i = 1; i <= days; i++) {
+            dayOptions.add("Day " + i);
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                dayOptions
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        daySelector.setAdapter(adapter);
+
+        daySelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
+                if (googleMap != null) {
+                    updateMapForSelectedDay(position - 1); // -1 because "All Days" is at position 0
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+    }
+
+    private void updateMapForSelectedDay(int selectedDay) {
+        googleMap.clear(); // Clear existing markers and polylines
+
+        if (selectedDay == -1) {
+            // Show all days
+            displayAllDays();
+        } else {
+            // Show specific day
+            displaySpecificDay(selectedDay);
+        }
+    }
+
+    private void displayAllDays() {
+        for (int day = 0; day < dailyItineraries.size(); day++) {
+            List<LatLng> dayLocations = dailyItineraries.get(day);
+            displayDayItinerary(dayLocations, day);
+        }
+        // Zoom to first location
+        if (!dailyItineraries.isEmpty() && !dailyItineraries.get(0).isEmpty()) {
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(dailyItineraries.get(0).get(0), 12));
+        }
+    }
+    private void displaySpecificDay(int day) {
+        if (day >= 0 && day < dailyItineraries.size()) {
+            List<LatLng> dayLocations = dailyItineraries.get(day);
+            displayDayItinerary(dayLocations, day);
+
+            // Zoom to first location of selected day
+            if (!dayLocations.isEmpty()) {
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(dayLocations.get(0), 12));
+            }
+        }
+    }
+
+    private void displayDayItinerary(List<LatLng> dayLocations, int day) {
+        if (!dayLocations.isEmpty()) {
+            // Add markers
+            for (int i = 0; i < dayLocations.size(); i++) {
+                LatLng location = dayLocations.get(i);
+                String title = "Day " + (day + 1) + " - Stop " + (i + 1);
+                googleMap.addMarker(new MarkerOptions().position(location).title(title));
+            }
+
+            // Add polyline
+            PolylineOptions polylineOptions = new PolylineOptions()
+                    .addAll(dayLocations)
+                    .clickable(true);
+            googleMap.addPolyline(polylineOptions);
+        }
     }
 
     // Method to split locations into daily groups based on the number of days
