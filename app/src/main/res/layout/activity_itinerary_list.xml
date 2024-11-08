@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-
     <!-- Title for the itinerary page -->
     <TextView
         android:id="@+id/itineraryTitle"
@@ -16,22 +15,39 @@
         android:gravity="center"
         android:layout_gravity="center_horizontal" />
 
-    <!-- Day selector spinner -->
-    <Spinner
-        android:id="@+id/daySelector"
+    <!-- Container for spinners -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:layout_marginHorizontal="16dp"/>
+        android:orientation="horizontal"
+        android:padding="16dp">
 
-    <!-- MapView to display the route with markers and polylines -->
+        <!-- Day selector spinner -->
+        <Spinner
+            android:id="@+id/daySelector"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Transport mode selector spinner -->
+        <Spinner
+            android:id="@+id/transportModeSelector"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"/>
+
+    </LinearLayout>
+
+    <!-- MapView to display the route -->
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- Button to allow user to save or share the itinerary if needed -->
+    <!-- Button to save itinerary -->
     <Button
         android:id="@+id/saveItineraryButton"
         android:layout_width="wrap_content"
@@ -39,6 +55,5 @@
         android:text="Save Itinerary"
         android:layout_gravity="center_horizontal"
         android:padding="16dp"
-        android:visibility="gone" />
-
+        android:layout_marginVertical="16dp"/>
 </LinearLayout>

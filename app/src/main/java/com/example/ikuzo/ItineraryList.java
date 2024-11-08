@@ -18,9 +18,16 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.DirectionsApi;
+import com.google.maps.GeoApiContext;
+import com.google.maps.android.PolyUtil;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
+import com.google.maps.model.TravelMode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ItineraryList extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -31,10 +38,24 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
     private int days = 1; // Example: You can change based on user selection
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
 
+    private Spinner transportModeSelector;
+
+    private GeoApiContext geoApiContext;
+    private TravelMode currentTravelMode = TravelMode.DRIVING;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_itinerary_list);
+
+        // Initialize GeoApiContext with your API key
+        geoApiContext = new GeoApiContext.Builder()
+                .apiKey("AIzaSyBvhXVJe711TGqgnlMfL8NCXwyuZEQ8eGw")
+                .connectTimeout(2, TimeUnit.SECONDS)
+                .readTimeout(2, TimeUnit.SECONDS)
+                .writeTimeout(2, TimeUnit.SECONDS)
+                .build();
 
         // Retrieve selected locations and number of days from intent
         ArrayList<LatLng> locations = getIntent().getParcelableArrayListExtra("LOCATIONS");
@@ -52,13 +73,59 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
 
         // Initialize Spinner
         setupDaySelector();
-        
+        setupTransportModeSelector();
+
         // Initialize MapView
         mapView = findViewById(R.id.mapView);
         Bundle mapViewBundle = savedInstanceState != null ? savedInstanceState.getBundle(MAP_VIEW_BUNDLE_KEY) : null;
         mapView.onCreate(mapViewBundle);
         mapView.getMapAsync(this);
     }
+
+    private void setupTransportModeSelector() {
+        transportModeSelector = findViewById(R.id.transportModeSelector);
+        List<String> transportModes = new ArrayList<>();
+        transportModes.add("Driving");
+        transportModes.add("Walking");
+        transportModes.add("Bicycling");
+        transportModes.add("Transit");
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                transportModes
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        transportModeSelector.setAdapter(adapter);
+
+        transportModeSelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                        currentTravelMode = TravelMode.DRIVING;
+                        break;
+                    case 1:
+                        currentTravelMode = TravelMode.WALKING;
+                        break;
+                    case 2:
+                        currentTravelMode = TravelMode.BICYCLING;
+                        break;
+                    case 3:
+                        currentTravelMode = TravelMode.TRANSIT;
+                        break;
+                }
+                int selectedDay = daySelector.getSelectedItemPosition() - 1;
+                updateMapForSelectedDay(selectedDay);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+    }
+
 
     private void setupDaySelector() {
         daySelector = findViewById(R.id.daySelector);
@@ -103,6 +170,67 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
+    private void fetchDirectionsAndDrawRoute(List<LatLng> locations, int day) {
+        if (locations.size() < 2) return;
+
+        new Thread(() -> {
+            try {
+                List<com.google.maps.model.LatLng> waypoints = new ArrayList<>();
+                for (int i = 1; i < locations.size() - 1; i++) {
+                    waypoints.add(new com.google.maps.model.LatLng(
+                            locations.get(i).latitude,
+                            locations.get(i).longitude
+                    ));
+                }
+
+                DirectionsResult result = DirectionsApi.newRequest(geoApiContext)
+                        .origin(new com.google.maps.model.LatLng(
+                                locations.get(0).latitude,
+                                locations.get(0).longitude))
+                        .destination(new com.google.maps.model.LatLng(
+                                locations.get(locations.size() - 1).latitude,
+                                locations.get(locations.size() - 1).longitude))
+                        .waypoints(waypoints.toArray(new com.google.maps.model.LatLng[0]))
+                        .mode(currentTravelMode)
+                        .await();
+
+                if (result.routes.length > 0) {
+                    DirectionsRoute route = result.routes[0];
+                    List<LatLng> path = PolyUtil.decode(route.overviewPolyline.getEncodedPath());
+
+                    runOnUiThread(() -> {
+                        PolylineOptions polylineOptions = new PolylineOptions()
+                                .addAll(path)
+                                .clickable(true);
+
+                        switch (currentTravelMode) {
+                            case DRIVING:
+                                polylineOptions.color(0xFF0000FF); // Blue
+                                break;
+                            case WALKING:
+                                polylineOptions.color(0xFF00FF00); // Green
+                                break;
+                            case BICYCLING:
+                                polylineOptions.color(0xFFFF0000); // Red
+                                break;
+                            case TRANSIT:
+                                polylineOptions.color(0xFFFF00FF); // Purple
+                                break;
+                        }
+
+                        googleMap.addPolyline(polylineOptions);
+                    });
+                }
+            } catch (Exception e) {
+                Log.e("ItineraryList", "Error fetching directions", e);
+                runOnUiThread(() -> {
+                    Toast.makeText(ItineraryList.this,
+                            "Error getting directions: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
     private void displayAllDays() {
         for (int day = 0; day < dailyItineraries.size(); day++) {
             List<LatLng> dayLocations = dailyItineraries.get(day);
@@ -126,20 +254,17 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
     }
 
     private void displayDayItinerary(List<LatLng> dayLocations, int day) {
-        if (!dayLocations.isEmpty()) {
-            // Add markers
-            for (int i = 0; i < dayLocations.size(); i++) {
-                LatLng location = dayLocations.get(i);
-                String title = "Day " + (day + 1) + " - Stop " + (i + 1);
-                googleMap.addMarker(new MarkerOptions().position(location).title(title));
-            }
+        if (dayLocations.isEmpty()) return;
 
-            // Add polyline
-            PolylineOptions polylineOptions = new PolylineOptions()
-                    .addAll(dayLocations)
-                    .clickable(true);
-            googleMap.addPolyline(polylineOptions);
+        // Add markers for all locations
+        for (int i = 0; i < dayLocations.size(); i++) {
+            LatLng location = dayLocations.get(i);
+            String title = "Day " + (day + 1) + " - Stop " + (i + 1);
+            googleMap.addMarker(new MarkerOptions().position(location).title(title));
         }
+
+        // Get directions for the route
+        fetchDirectionsAndDrawRoute(dayLocations, day);
     }
 
     // Method to split locations into daily groups based on the number of days
