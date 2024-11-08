@@ -101,10 +101,14 @@ public class Questionnaire_Interests extends AppCompatActivity {
 
 
         // Get data from Intent
+
+
         Intent intent = getIntent();
-        String dateStart= intent.getStringExtra("STARTDATE");
-        String dateEnd= intent.getStringExtra("ENDDATE");
         String location = intent.getStringExtra("LOCATION");
+        int tripDuration = intent.getIntExtra("DURATION", 0);  // Default to 0 if not found
+        String dateStart = intent.getStringExtra("STARTDATE");  // Use "STARTDATE" to match the putExtra key
+        String dateEnd = intent.getStringExtra("ENDDATE");
+
         // Display a Toast with all data
         String summary = "Trip Dates: " + dateStart + " - " + dateEnd + "\nLocation: " + location +
                 "\nInterests: " + selectedInterestsString + "\nFood Preference: " + foodPreference +
@@ -117,6 +121,7 @@ public class Questionnaire_Interests extends AppCompatActivity {
         locationIntent.putExtra("INTERESTS", selectedInterestsString);
         locationIntent.putExtra("FOOD_PREFERENCE", foodPreference);
         locationIntent.putExtra("TRANSPORT_PREFERENCE", transportPreference);
+        locationIntent.putExtra("DURATION", tripDuration);
         startActivity(locationIntent);
     }
 }

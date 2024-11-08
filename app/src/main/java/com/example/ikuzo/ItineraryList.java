@@ -1,133 +1,148 @@
 package com.example.ikuzo;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.PolyUtil;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ItineraryList extends AppCompatActivity implements OnMapReadyCallback {
 
-    private GoogleMap mMap;
+    private MapView mapView;
+    private GoogleMap googleMap;
+    private List<List<LatLng>> dailyItineraries;
+    private int days = 1; // Example: You can change based on user selection
+    private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
 
-    private static final String MAP_VIEW_BUNDLE_KEY = "AIzaSyAdh26AFnrQNhrwS8Xx2jJEDf4rt2-NEBQ";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_itinerary_list);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        // Set up the map fragment
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
+        // Retrieve selected locations and number of days from intent
+        ArrayList<LatLng> locations = getIntent().getParcelableArrayListExtra("LOCATIONS");
+        days = getIntent().getIntExtra("DURATION",0);
+        Log.d("ItineraryList", "Days: " + days);
+        Log.d("ItineraryList", "locations: " + locations);
+
+        if (locations == null || locations.isEmpty() || days <= 0) {
+            Toast.makeText(this, "Invalid itinerary data!", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        // Split locations into daily itineraries
+        dailyItineraries = splitLocationsByDays(locations, days);
+
+        // Initialize MapView
+        mapView = findViewById(R.id.mapView);
+        Bundle mapViewBundle = savedInstanceState != null ? savedInstanceState.getBundle(MAP_VIEW_BUNDLE_KEY) : null;
+        mapView.onCreate(mapViewBundle);
+        mapView.getMapAsync(this);
     }
 
-    private void generateItineraries() {
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        ArrayList<LatLng> locations = (ArrayList<LatLng>) getIntent().getSerializableExtra("LOCATIONS");
+    // Method to split locations into daily groups based on the number of days
+    private List<List<LatLng>> splitLocationsByDays(List<LatLng> locations, int days) {
+        List<List<LatLng>> dailyItineraries = new ArrayList<>();
+        int locationsPerDay = locations.size() / days;
+        int extra = locations.size() % days;
 
-        if (locations == null || locations.isEmpty()) {
-            Log.e("ItineraryList", "Locations data is null or empty");
-            Toast.makeText(this, "No locations passed to the itinerary", Toast.LENGTH_SHORT).show();
+        int start = 0;
+        for (int i = 0; i < days; i++) {
+            int end = start + locationsPerDay + (i < extra ? 1 : 0);
+            dailyItineraries.add(new ArrayList<>(locations.subList(start, end)));
+            start = end;
         }
-        for (int i = 0; i < locations.size() - 1; i++) {
-            LatLng origin = locations.get(i);
-            LatLng destination = locations.get(i + 1);
-
-            String url = "https://maps.googleapis.com/maps/api/directions/json?" +
-                    "origin=" + origin.latitude + "," + origin.longitude +
-                    "&destination=" + destination.latitude + "," + destination.longitude +
-                    "&alternatives=true&mode=driving&key=AIzaSyAdh26AFnrQNhrwS8Xx2jJEDf4rt2-NEBQ";
-
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
-                    response -> {
-                        try {
-                            JSONArray routes = response.getJSONArray("routes");
-
-                            for (int j = 0; j < routes.length(); j++) {
-                                JSONObject route = routes.getJSONObject(j);
-                                String polyline = route.getJSONObject("overview_polyline").getString("points");
-                                List<LatLng> points = PolyUtil.decode(polyline);
-
-                                // Draw the polyline on the map
-                                PolylineOptions polylineOptions = new PolylineOptions()
-                                        .addAll(points)
-                                        .color(Color.BLUE)
-                                        .width(10);
-                                mMap.addPolyline(polylineOptions);
-
-                                // Display travel time
-                                JSONArray legs = route.getJSONArray("legs");
-                                JSONObject leg = legs.getJSONObject(0);
-                                String duration = leg.getJSONObject("duration").getString("text");
-
-                                LinearLayout itineraryLayout = findViewById(R.id.itinerary_layout);
-                                // Create a card or view to display the details
-                                View card = LayoutInflater.from(ItineraryList.this)
-                                        .inflate(R.layout.itinerary_card, itineraryLayout, false);
-                                TextView itineraryDetails = card.findViewById(R.id.itinerary_details);
-                                itineraryDetails.setText("Route " + (j + 1) + ": Time taken: " + duration);
-
-                                itineraryLayout.addView(card);
-                            }
-                        } catch (JSONException e) {
-                            Log.e("ItineraryActivity", "JSON parsing error: " + e.getMessage());
-                        }
-                    }, error -> Log.e("ItineraryActivity", "Error fetching directions: " + error.toString()));
-
-            requestQueue.add(request);
-        }
+        return dailyItineraries;
     }
-
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+    public void onMapReady(@NonNull GoogleMap map) {
+        googleMap = map;
 
-        // Call generateItineraries() after the map is ready
-        generateItineraries();
+        // Loop through each day’s itinerary to add markers and polylines
+        for (int day = 0; day < dailyItineraries.size(); day++) {
+            List<LatLng> dayLocations = dailyItineraries.get(day);
+
+            if (!dayLocations.isEmpty()) {
+                // Add a marker for each stop in the day's itinerary
+                for (int i = 0; i < dayLocations.size(); i++) {
+                    LatLng location = dayLocations.get(i);
+                    String title = "Day " + (day + 1) + " - Stop " + (i + 1);
+                    googleMap.addMarker(new MarkerOptions().position(location).title(title));
+                }
+
+                // Add a polyline to connect all stops for the day
+                PolylineOptions polylineOptions = new PolylineOptions()
+                        .addAll(dayLocations)
+                        .clickable(true);
+
+                googleMap.addPolyline(polylineOptions);
+
+                // Move the camera to the first stop of the first day
+                if (day == 0) {
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(dayLocations.get(0), 12));
+                }
+            }
+        }
     }
 
+    // MapView lifecycle methods
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        mapView.onPause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mapView.onDestroy();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Bundle mapViewBundle = outState.getBundle(MAP_VIEW_BUNDLE_KEY);
+        if (mapViewBundle == null) {
+            mapViewBundle = new Bundle();
+            outState.putBundle(MAP_VIEW_BUNDLE_KEY, mapViewBundle);
+        }
+        mapView.onSaveInstanceState(mapViewBundle);
+    }
 }

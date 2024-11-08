@@ -43,6 +43,7 @@ public class LocationSelector extends AppCompatActivity {
     private Button submitButton;
     private PlacesClient placesClient;
     private List<Place> placesList = new ArrayList<>();
+    private int tripDuration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,10 +66,14 @@ public class LocationSelector extends AppCompatActivity {
         // Get location and interests from intent
         Intent intent = getIntent();
         String location = intent.getStringExtra("LOCATION");
+        tripDuration = intent.getIntExtra("DURATION", 0);  // Default to 0 if not found
         String interests = intent.getStringExtra("INTERESTS");
+
+
 
         Log.d("LocationSelectionActivity", "Location: " + location);
         Log.d("LocationSelectionActivity", "Interests: " + interests);
+        Log.d("LocationSelector", "Days: " + tripDuration);
 
         fetchNearbyPlaces(location, interests); // Pass interests to the method
 
@@ -211,6 +216,7 @@ public class LocationSelector extends AppCompatActivity {
                 }
 
                 intent.putExtra("LOCATIONS", latLngList); // List of LatLng points
+                intent.putExtra("DURATION",tripDuration);
                 startActivity(intent);
             } else {
                 Toast.makeText(this, "No places selected!", Toast.LENGTH_SHORT).show();
