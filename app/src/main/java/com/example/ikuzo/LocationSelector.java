@@ -205,10 +205,13 @@ public class LocationSelector extends AppCompatActivity {
                         .map(Place::getName)
                         .collect(Collectors.joining(", "));
                 Toast.makeText(this, "Selected places: " + selectedPlacesNames, Toast.LENGTH_SHORT).show();
+                Log.d("LocationSelector", "selected places names: "+ selectedPlacesNames);
+                Log.d("LocationSelector", "selected places: "+ selectedPlaces);
+
                 Intent intent = new Intent(LocationSelector.this, ItineraryList.class);
                 ArrayList<LatLng> latLngList = new ArrayList<>();
 
-                for (Place place : placesList) {
+                for (Place place : selectedPlaces) {
                     LatLng latLng = place.getLatLng(); // Get LatLng from Place
                     if (latLng != null) {
                         latLngList.add(latLng); // Add LatLng to the ArrayList
