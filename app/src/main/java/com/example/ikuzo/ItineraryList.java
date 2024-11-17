@@ -113,7 +113,7 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
                         break;
                     case 3:
                         currentTravelMode = TravelMode.TRANSIT;
-                        break;
+                        break; 
                 }
                 int selectedDay = daySelector.getSelectedItemPosition() - 1;
                 updateMapForSelectedDay(selectedDay);
