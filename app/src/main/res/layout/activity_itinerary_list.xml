@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <!-- Title for the itinerary page -->
+
     <TextView
         android:id="@+id/itineraryTitle"
         android:layout_width="wrap_content"
@@ -15,14 +15,12 @@
         android:gravity="center"
         android:layout_gravity="center_horizontal" />
 
-    <!-- Container for spinners -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- Day selector spinner -->
         <Spinner
             android:id="@+id/daySelector"
             android:layout_width="0dp"
@@ -30,7 +28,6 @@
             android:layout_weight="1"
             android:layout_marginEnd="8dp"/>
 
-        <!-- Transport mode selector spinner -->
         <Spinner
             android:id="@+id/transportModeSelector"
             android:layout_width="0dp"
@@ -40,14 +37,30 @@
 
     </LinearLayout>
 
-    <!-- MapView to display the route -->
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="0.6" />
 
-    <!-- Button to save itinerary -->
+    <!-- Added ScrollView for location details -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.4"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:id="@+id/locationsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Location items will be added here programmatically -->
+
+        </LinearLayout>
+    </ScrollView>
+
     <Button
         android:id="@+id/saveItineraryButton"
         android:layout_width="wrap_content"

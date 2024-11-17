@@ -1,7 +1,13 @@
 package com.example.ikuzo;
 
+import android.graphics.Typeface;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import android.widget.ArrayAdapter;
@@ -25,8 +31,12 @@ import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.TravelMode;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class ItineraryList extends AppCompatActivity implements OnMapReadyCallback {
@@ -42,6 +52,11 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
 
     private GeoApiContext geoApiContext;
     private TravelMode currentTravelMode = TravelMode.DRIVING;
+    // Add these as class fields in ItineraryList.java
+    private LinearLayout locationsContainer;
+    private static final int DEFAULT_DURATION_MINUTES = 60; // Default time to spend at each location
+    private Map<String, String> locationNames = new HashMap<>(); // To store location names
+    private Map<String, String> locationAddresses = new HashMap<>(); // To store location addresses
 
 
     @Override
@@ -67,7 +82,7 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
             Toast.makeText(this, "Invalid itinerary data!", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        initializeLocationsList();
         // Split locations into daily itineraries
         dailyItineraries = splitLocationsByDays(locations, days);
 
@@ -81,6 +96,101 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
         mapView.onCreate(mapViewBundle);
         mapView.getMapAsync(this);
     }
+
+    // Add this in onCreate() after setContentView
+    private void initializeLocationsList() {
+        locationsContainer = findViewById(R.id.locationsContainer);
+    }
+
+    // Add this method to fetch location details using Geocoder
+    private void fetchLocationDetails(LatLng location, TextView nameView, TextView addressView) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                String locationName;
+
+                // Try to get the most specific name for the location
+                if (address.getFeatureName() != null && !address.getFeatureName().matches("\\d+")) {
+                    locationName = address.getFeatureName();
+                } else if (address.getThoroughfare() != null) {
+                    locationName = address.getThoroughfare();
+                } else {
+                    locationName = "";
+                }
+
+                // Get full address
+                String fullAddress;
+                String addressLine = address.getAddressLine(0);
+                if (addressLine != null) {
+                    fullAddress = addressLine;
+                } else {
+                    fullAddress = "";
+                }
+
+                // Store the details
+                String locationKey = location.latitude + "," + location.longitude;
+                locationNames.put(locationKey, locationName);
+                locationAddresses.put(locationKey, fullAddress);
+
+                // Update UI on main thread
+                runOnUiThread(() -> {
+                    nameView.setText(locationName);
+                    addressView.setText(fullAddress);
+                });
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            runOnUiThread(() -> {
+                nameView.setText("Location Name Not Available");
+                addressView.setText("Address Not Available");
+            });
+        }
+    }
+
+    // Method to calculate travel time between locations
+    private void fetchTravelTime(LatLng origin, LatLng destination, TextView travelInfoView) {
+        new Thread(() -> {
+            try {
+                DirectionsResult result = DirectionsApi.newRequest(geoApiContext)
+                        .origin(new com.google.maps.model.LatLng(origin.latitude, origin.longitude))
+                        .destination(new com.google.maps.model.LatLng(destination.latitude, destination.longitude))
+                        .mode(currentTravelMode)
+                        .await();
+
+                if (result.routes.length > 0) {
+                    DirectionsRoute route = result.routes[0];
+                    long durationSeconds = route.legs[0].duration.inSeconds;
+                    String travelTime = formatDuration(durationSeconds);
+
+                    runOnUiThread(() -> {
+                        travelInfoView.setText(String.format("→ %s by %s",
+                                travelTime,
+                                currentTravelMode.toString().toLowerCase()));
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> {
+                    travelInfoView.setText("Travel time unavailable");
+                });
+            }
+        }).start();
+    }
+
+    // Helper method to format duration
+    private String formatDuration(long seconds) {
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+
+        if (hours > 0) {
+            return String.format("%dh %dm", hours, minutes);
+        } else {
+            return String.format("%dm", minutes);
+        }
+    }
+
 
     private void setupTransportModeSelector() {
         transportModeSelector = findViewById(R.id.transportModeSelector);
@@ -231,20 +341,64 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
             }
         }).start();
     }
+    // Update the displayAllDays method
     private void displayAllDays() {
+        locationsContainer.removeAllViews();
+
         for (int day = 0; day < dailyItineraries.size(); day++) {
             List<LatLng> dayLocations = dailyItineraries.get(day);
             displayDayItinerary(dayLocations, day);
+
+            // Add day separator
+            TextView daySeparator = new TextView(this);
+            daySeparator.setText("Day " + (day + 1));
+            daySeparator.setTextSize(18);
+            daySeparator.setTypeface(null, Typeface.BOLD);
+            daySeparator.setPadding(0, 16, 0, 8);
+            locationsContainer.addView(daySeparator);
+
+            // Add locations for this day
+            for (int i = 0; i < dayLocations.size(); i++) {
+                LatLng location = dayLocations.get(i);
+                View locationItem = getLayoutInflater().inflate(R.layout.itinerary_location_item, locationsContainer, false);
+
+                TextView titleView = locationItem.findViewById(R.id.locationTitle);
+                TextView addressView = locationItem.findViewById(R.id.locationAddress);
+                TextView durationView = locationItem.findViewById(R.id.suggestedDuration);
+                TextView travelInfoView = locationItem.findViewById(R.id.travelInfo);
+
+                // Set initial loading state
+                titleView.setText("Loading...");
+                addressView.setText("Fetching address...");
+                durationView.setText(String.format("Suggested duration: %d min", DEFAULT_DURATION_MINUTES));
+
+                // Fetch location details
+                fetchLocationDetails(location, titleView, addressView);
+
+                // If not the last location in the day, show travel time to next location
+                if (i < dayLocations.size() - 1) {
+                    LatLng nextLocation = dayLocations.get(i + 1);
+                    fetchTravelTime(location, nextLocation, travelInfoView);
+                } else {
+                    travelInfoView.setVisibility(View.GONE);
+                }
+
+                locationsContainer.addView(locationItem);
+            }
         }
+
         // Zoom to first location
         if (!dailyItineraries.isEmpty() && !dailyItineraries.get(0).isEmpty()) {
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(dailyItineraries.get(0).get(0), 12));
         }
     }
+
+    // Update the displaySpecificDay method
     private void displaySpecificDay(int day) {
         if (day >= 0 && day < dailyItineraries.size()) {
             List<LatLng> dayLocations = dailyItineraries.get(day);
             displayDayItinerary(dayLocations, day);
+            updateLocationsList(dayLocations, day);
 
             // Zoom to first location of selected day
             if (!dayLocations.isEmpty()) {
@@ -253,6 +407,90 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
+    // Update the updateLocationsList method
+    private void updateLocationsList(List<LatLng> locations, int day) {
+        locationsContainer.removeAllViews();
+
+        for (int i = 0; i < locations.size(); i++) {
+            LatLng location = locations.get(i);
+            View locationItem = getLayoutInflater().inflate(R.layout.itinerary_location_item, locationsContainer, false);
+
+            TextView titleView = locationItem.findViewById(R.id.locationTitle);
+            TextView addressView = locationItem.findViewById(R.id.locationAddress);
+            TextView durationView = locationItem.findViewById(R.id.suggestedDuration);
+            TextView travelInfoView = locationItem.findViewById(R.id.travelInfo);
+
+            // Set initial loading state
+            titleView.setText("Loading...");
+            addressView.setText("Fetching address...");
+            durationView.setText(String.format("Suggested duration: %d min", DEFAULT_DURATION_MINUTES));
+
+            // Fetch location details
+            fetchLocationDetails(location, titleView, addressView);
+
+            // If not the last location, show travel time to next location
+            if (i < locations.size() - 1) {
+                LatLng nextLocation = locations.get(i + 1);
+                fetchTravelTime(location, nextLocation, travelInfoView);
+            } else {
+                travelInfoView.setVisibility(View.GONE);
+            }
+
+            locationsContainer.addView(locationItem);
+        }
+    }
+
+    // Add this optional enhancement to update travel times when transport mode changes
+//    @Override
+//    public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
+//        if (parent.getId() == R.id.transportModeSelector) {
+//            // Update travel mode
+//            switch (position) {
+//                case 0:
+//                    currentTravelMode = TravelMode.DRIVING;
+//                    break;
+//                case 1:
+//                    currentTravelMode = TravelMode.WALKING;
+//                    break;
+//                case 2:
+//                    currentTravelMode = TravelMode.BICYCLING;
+//                    break;
+//                case 3:
+//                    currentTravelMode = TravelMode.TRANSIT;
+//                    break;
+//            }
+//
+//            // Refresh the current view to update travel times
+//            int selectedDay = daySelector.getSelectedItemPosition() - 1;
+//            if (selectedDay == -1) {
+//                displayAllDays();
+//            } else {
+//                displaySpecificDay(selectedDay);
+//            }
+//        } else if (parent.getId() == R.id.daySelector) {
+//            if (googleMap != null) {
+//                updateMapForSelectedDay(position - 1);
+//            }
+//        }
+//    }
+
+    // Optional: Add method to update duration
+    public void updateLocationDuration(int dayIndex, int locationIndex, int durationMinutes) {
+        if (dayIndex >= 0 && dayIndex < dailyItineraries.size()) {
+            // Find the specific location view
+            int totalItemsBefore = 0;
+            for (int i = 0; i < dayIndex; i++) {
+                totalItemsBefore += dailyItineraries.get(i).size() + 1; // +1 for day separator
+            }
+            int targetIndex = totalItemsBefore + locationIndex + 1; // +1 for current day's separator
+
+            View locationItem = locationsContainer.getChildAt(targetIndex);
+            if (locationItem != null) {
+                TextView durationView = locationItem.findViewById(R.id.suggestedDuration);
+                durationView.setText(String.format("Suggested duration: %d min", durationMinutes));
+            }
+        }
+    }
     private void displayDayItinerary(List<LatLng> dayLocations, int day) {
         if (dayLocations.isEmpty()) return;
 
