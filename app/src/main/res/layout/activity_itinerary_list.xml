@@ -50,15 +50,14 @@
         android:layout_weight="0.4"
         android:padding="8dp">
 
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/locationsContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!-- Location items will be added here programmatically -->
-
-        </LinearLayout>
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:layout_weight="0.4"
+            android:padding="8dp"
+            />
     </ScrollView>
 
     <Button

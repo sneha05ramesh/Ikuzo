@@ -1,5 +1,6 @@
 package com.example.ikuzo;
 
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
@@ -26,7 +27,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.DirectionsApi;
 import com.google.maps.GeoApiContext;
+import com.google.maps.PendingResult;
 import com.google.maps.android.PolyUtil;
+import com.google.maps.errors.ApiException;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 import com.google.maps.model.TravelMode;
@@ -191,6 +194,40 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
+    private void fetchShortestPathAndDraw(LatLng origin, LatLng destination, GoogleMap map) throws IOException, InterruptedException, ApiException {
+        DirectionsApi.newRequest(geoApiContext)
+                .origin(new com.google.maps.model.LatLng(origin.latitude, origin.longitude))
+                .destination(new com.google.maps.model.LatLng(destination.latitude, destination.longitude))
+                .mode(currentTravelMode)
+                .setCallback(new PendingResult.Callback<DirectionsResult>() {
+                    @Override
+                    public void onResult(DirectionsResult result) {
+                        if (result != null) {
+                            if (result.routes.length > 0)
+                            {
+                                DirectionsRoute route = result.routes[0]; // Assuming the first route is the shortest
+                                List<LatLng> path = PolyUtil.decode(route.overviewPolyline.getEncodedPath());
+
+                                // Create a PolylineOptions object and customize it
+                                PolylineOptions polylineOptions = new PolylineOptions()
+                                        .addAll(path)
+                                        .color(Color.BLUE)
+                                        .width(10)
+                                        .geodesic(true);
+
+                                // Add the polyline to the map
+                                map.addPolyline(polylineOptions);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable e) {
+                        // Handle errors, e.g., API rate limits, network issues
+                        Log.e("ItineraryList", "Error fetching shortest path", e);
+                    }
+                });
+    }
 
     private void setupTransportModeSelector() {
         transportModeSelector = findViewById(R.id.transportModeSelector);
@@ -226,7 +263,15 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
                         break; 
                 }
                 int selectedDay = daySelector.getSelectedItemPosition() - 1;
-                updateMapForSelectedDay(selectedDay);
+                try {
+                    updateMapForSelectedDay(selectedDay);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ApiException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
             @Override
@@ -257,7 +302,15 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
             @Override
             public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
                 if (googleMap != null) {
-                    updateMapForSelectedDay(position - 1); // -1 because "All Days" is at position 0
+                    try {
+                        updateMapForSelectedDay(position - 1); // -1 because "All Days" is at position 0
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    } catch (ApiException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
 
@@ -268,7 +321,7 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
         });
     }
 
-    private void updateMapForSelectedDay(int selectedDay) {
+    private void updateMapForSelectedDay(int selectedDay) throws IOException, InterruptedException, ApiException {
         googleMap.clear(); // Clear existing markers and polylines
 
         if (selectedDay == -1) {
@@ -347,7 +400,15 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
 
         for (int day = 0; day < dailyItineraries.size(); day++) {
             List<LatLng> dayLocations = dailyItineraries.get(day);
-            displayDayItinerary(dayLocations, day);
+            try {
+                displayDayItinerary(dayLocations, day);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ApiException e) {
+                throw new RuntimeException(e);
+            }
 
             // Add day separator
             TextView daySeparator = new TextView(this);
@@ -394,7 +455,7 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
     }
 
     // Update the displaySpecificDay method
-    private void displaySpecificDay(int day) {
+    private void displaySpecificDay(int day) throws IOException, InterruptedException, ApiException {
         if (day >= 0 && day < dailyItineraries.size()) {
             List<LatLng> dayLocations = dailyItineraries.get(day);
             displayDayItinerary(dayLocations, day);
@@ -440,60 +501,13 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-    // Add this optional enhancement to update travel times when transport mode changes
-//    @Override
-//    public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
-//        if (parent.getId() == R.id.transportModeSelector) {
-//            // Update travel mode
-//            switch (position) {
-//                case 0:
-//                    currentTravelMode = TravelMode.DRIVING;
-//                    break;
-//                case 1:
-//                    currentTravelMode = TravelMode.WALKING;
-//                    break;
-//                case 2:
-//                    currentTravelMode = TravelMode.BICYCLING;
-//                    break;
-//                case 3:
-//                    currentTravelMode = TravelMode.TRANSIT;
-//                    break;
-//            }
-//
-//            // Refresh the current view to update travel times
-//            int selectedDay = daySelector.getSelectedItemPosition() - 1;
-//            if (selectedDay == -1) {
-//                displayAllDays();
-//            } else {
-//                displaySpecificDay(selectedDay);
-//            }
-//        } else if (parent.getId() == R.id.daySelector) {
-//            if (googleMap != null) {
-//                updateMapForSelectedDay(position - 1);
-//            }
-//        }
-//    }
-
-    // Optional: Add method to update duration
-    public void updateLocationDuration(int dayIndex, int locationIndex, int durationMinutes) {
-        if (dayIndex >= 0 && dayIndex < dailyItineraries.size()) {
-            // Find the specific location view
-            int totalItemsBefore = 0;
-            for (int i = 0; i < dayIndex; i++) {
-                totalItemsBefore += dailyItineraries.get(i).size() + 1; // +1 for day separator
-            }
-            int targetIndex = totalItemsBefore + locationIndex + 1; // +1 for current day's separator
-
-            View locationItem = locationsContainer.getChildAt(targetIndex);
-            if (locationItem != null) {
-                TextView durationView = locationItem.findViewById(R.id.suggestedDuration);
-                durationView.setText(String.format("Suggested duration: %d min", durationMinutes));
-            }
-        }
-    }
-    private void displayDayItinerary(List<LatLng> dayLocations, int day) {
+    private void displayDayItinerary(List<LatLng> dayLocations, int day) throws IOException, InterruptedException, ApiException {
         if (dayLocations.isEmpty()) return;
-
+        for (int i = 0; i < dayLocations.size() - 1; i++) {
+            LatLng origin = dayLocations.get(i);
+            LatLng destination = dayLocations.get(i + 1);
+            fetchShortestPathAndDraw(origin, destination, googleMap);
+        }
         // Add markers for all locations
         for (int i = 0; i < dayLocations.size(); i++) {
             LatLng location = dayLocations.get(i);
