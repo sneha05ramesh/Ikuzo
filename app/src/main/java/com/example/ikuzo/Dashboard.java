@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -47,6 +49,10 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // Retrieve the profile name TextView from the header
+        View headerView = navigationView.getHeaderView(0); // 0 refers to the first header view
+        TextView profileNameTextView = headerView.findViewById(R.id.nav_user_name);
+
         // Set up the Navigation Drawer
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -61,11 +67,22 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             startActivity(intent);
         });
 
+        // Profile Icon click listener - Navigate to ProfileActivity
+        ImageView profileIcon = headerView.findViewById(R.id.profile_icon);
+        profileIcon.setOnClickListener(v -> {
+            // Navigate to ProfileActivity when profile icon is clicked
+            Intent intent = new Intent(Dashboard.this, Profile.class);
+            startActivity(intent);
+        });
+
+        // If user is signed in, display the user's name in the Navigation Drawer header
         if (currentUser != null) {
             // User is signed in
             String displayName = currentUser.getDisplayName();
-            userInfo.setText(displayName);
+            userInfo.setText(displayName); // Set user info on Dashboard
+            profileNameTextView.setText(displayName); // Set the name in the Navigation Drawer header
         } else {
+            // Log if no user is signed in
             Log.d("UserInfo", "No user is currently logged in.");
         }
     }
@@ -76,19 +93,21 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         int id = item.getItemId();
 
         if (id == R.id.nav_logout) {
-            // Log out the user and go to Login activity
+            // Log out the user and navigate to Login activity
             mAuth.signOut();
             Intent intent = new Intent(Dashboard.this, Login.class);
             startActivity(intent);
             finish();
         }
 
+        // Close the drawer after an item is selected
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
     @Override
     public void onBackPressed() {
+        // Close the drawer if it's open; otherwise, navigate normally
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
