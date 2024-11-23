@@ -99,39 +99,6 @@
                     android:text="No preference"/>
             </RadioGroup>
 
-            <!-- Preferred Mode of Transport Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Preferred mode of transport"
-                android:textSize="18sp"
-                android:paddingTop="16dp"
-                android:paddingBottom="8dp"/>
-
-            <RadioGroup
-                android:id="@+id/radioGroup_transport"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <RadioButton
-                    android:id="@+id/radio_car"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Car"/>
-
-                <RadioButton
-                    android:id="@+id/radio_public_transport"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Public transport"/>
-
-                <RadioButton
-                    android:id="@+id/radio_rideshare"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Rideshare (Uber/Lyft)"/>
-            </RadioGroup>
-
             <!-- Submit Button -->
             <Button
                 android:id="@+id/button_submit"

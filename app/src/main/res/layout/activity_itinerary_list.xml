@@ -50,7 +50,7 @@
         android:layout_weight="0.4"
         android:padding="8dp">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <LinearLayout
             android:id="@+id/locationsContainer"
             android:layout_width="match_parent"
             android:layout_height="0dp"

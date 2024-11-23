@@ -23,7 +23,7 @@ import java.util.Map;
 public class Questionnaire_Interests extends AppCompatActivity {
 
     private CheckBox checkSightseeing, checkShopping, checkBeach, checkPartying, checkMuseums;
-    private RadioGroup radioGroupFood, radioGroupTransport;
+    private RadioGroup radioGroupFood;
     private Button submitButton;
 
     private DatabaseReference databaseReference;
@@ -49,7 +49,6 @@ public class Questionnaire_Interests extends AppCompatActivity {
         checkMuseums = findViewById(R.id.check_museums);
 
         radioGroupFood = findViewById(R.id.radioGroup_food);
-        radioGroupTransport = findViewById(R.id.radioGroup_transport);
 
         submitButton = findViewById(R.id.button_submit);
 
@@ -83,10 +82,6 @@ public class Questionnaire_Interests extends AppCompatActivity {
         int selectedFoodId = radioGroupFood.getCheckedRadioButtonId();
         String foodPreference = selectedFoodId != -1 ? ((RadioButton) findViewById(selectedFoodId)).getText().toString() : "No preference";
 
-        // Collect transport preference
-        int selectedTransportId = radioGroupTransport.getCheckedRadioButtonId();
-        String transportPreference = selectedTransportId != -1 ? ((RadioButton) findViewById(selectedTransportId)).getText().toString() : "No preference";
-
 //        // Save data to Firebase
 //        databaseReference.child("interests").setValue(interests);
 //        databaseReference.child("foodPreference").setValue(foodPreference);
@@ -110,17 +105,16 @@ public class Questionnaire_Interests extends AppCompatActivity {
         String dateEnd = intent.getStringExtra("ENDDATE");
 
         // Display a Toast with all data
-        String summary = "Trip Dates: " + dateStart + " - " + dateEnd + "\nLocation: " + location +
-                "\nInterests: " + selectedInterestsString + "\nFood Preference: " + foodPreference +
-                "\nTransport: " + transportPreference;
-        Toast.makeText(Questionnaire_Interests.this, summary, Toast.LENGTH_SHORT).show();
+//        String summary = "Trip Dates: " + dateStart + " - " + dateEnd + "\nLocation: " + location +
+//                "\nInterests: " + selectedInterestsString + "\nFood Preference: " + foodPreference +
+//                "\nTransport: " + transportPreference;
+//        Toast.makeText(Questionnaire_Interests.this, summary, Toast.LENGTH_SHORT).show();
 
         // Create intent for next activity
         Intent locationIntent = new Intent(Questionnaire_Interests.this, LocationSelector.class);
         locationIntent.putExtra("LOCATION", location);
         locationIntent.putExtra("INTERESTS", selectedInterestsString);
         locationIntent.putExtra("FOOD_PREFERENCE", foodPreference);
-        locationIntent.putExtra("TRANSPORT_PREFERENCE", transportPreference);
         locationIntent.putExtra("DURATION", tripDuration);
         startActivity(locationIntent);
     }
