@@ -56,6 +56,7 @@ public class LocationSelector extends AppCompatActivity {
     private PlacesClient placesClient;
     private List<Place> placesList = new ArrayList<>();
     private int tripDuration;
+    private String location;
 
     // Map to store interest categories and their corresponding Place types
     private static final Map<String, List<PlaceType>> INTEREST_PLACE_TYPES = new HashMap<>();
@@ -124,7 +125,7 @@ public class LocationSelector extends AppCompatActivity {
 
         // Get location and interests from intent
         Intent intent = getIntent();
-        String location = intent.getStringExtra("LOCATION");
+        location = intent.getStringExtra("LOCATION");
         tripDuration = intent.getIntExtra("DURATION", 0);  // Default to 0 if not found
         String interests = intent.getStringExtra("INTERESTS");
 
@@ -438,7 +439,7 @@ public class LocationSelector extends AppCompatActivity {
                         latLngList.add(latLng);
                     }
                 }
-
+                intent.putExtra("DESTINATION", location);
                 intent.putExtra("LOCATIONS", latLngList);
                 intent.putExtra("DURATION", tripDuration);
                 startActivity(intent);

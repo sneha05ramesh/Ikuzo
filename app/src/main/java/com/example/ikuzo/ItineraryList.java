@@ -7,6 +7,7 @@ import android.location.Geocoder;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +26,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.maps.DirectionsApi;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PendingResult;
@@ -61,6 +64,9 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
     private Map<String, String> locationNames = new HashMap<>(); // To store location names
     private Map<String, String> locationAddresses = new HashMap<>(); // To store location addresses
 
+    private FirebaseAuth authProfile;
+    private FirebaseItineraryManager firebaseManager;
+    private String destinationLocation; // Add this to store the selected destination
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,9 +95,21 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
         // Split locations into daily itineraries
         dailyItineraries = splitLocationsByDays(locations, days);
 
+
+        authProfile = FirebaseAuth.getInstance();
+        FirebaseUser user = authProfile.getCurrentUser();
+        if(user == null){
+            return;
+        }
+        String userId =  user.getUid();// Pass this from previous activity
+        destinationLocation = getIntent().getStringExtra("DESTINATION"); // Pass this from previous activity
+        firebaseManager = new FirebaseItineraryManager(userId);
+
         // Initialize Spinner
         setupDaySelector();
         setupTransportModeSelector();
+
+        setupSaveButton();
 
         // Initialize MapView
         mapView = findViewById(R.id.mapView);
@@ -103,6 +121,38 @@ public class ItineraryList extends AppCompatActivity implements OnMapReadyCallba
     // Add this in onCreate() after setContentView
     private void initializeLocationsList() {
         locationsContainer = findViewById(R.id.locationsContainer);
+    }
+
+    // Add this method to handle save button click
+    private void setupSaveButton() {
+        Button saveButton = findViewById(R.id.saveItineraryButton);
+        saveButton.setOnClickListener(v -> saveItineraryToFirebase());
+    }
+
+    private void saveItineraryToFirebase() {
+        // Get current transport mode
+        String transportMode = currentTravelMode.toString();
+
+        try {
+            firebaseManager.saveVisitedLocation(destinationLocation);
+        }catch(Exception e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("HowDoIFIXTHIS?", e.getMessage());
+        }
+        try{
+            // Save the itinerary
+            firebaseManager.saveItinerary(
+                    destinationLocation,
+                    dailyItineraries,
+                    locationNames,
+                    locationAddresses,
+                    transportMode
+            );
+            Toast.makeText(this, "Itinerary saved successfully!", Toast.LENGTH_SHORT).show();
+        }catch(Exception e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("SaveError", e.getMessage());
+        }
     }
 
     // Add this method to fetch location details using Geocoder

@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -14,11 +15,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Dashboard extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -27,6 +39,9 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
     private FloatingActionButton fabAddTrip;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
+    private RecyclerView recyclerView;
+    private ItineraryAdapter itineraryAdapter;
+    private DatabaseReference itinerariesRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,8 +100,50 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             // Log if no user is signed in
             Log.d("UserInfo", "No user is currently logged in.");
         }
-    }
 
+        // Initialize RecyclerView
+        recyclerView = findViewById(R.id.rv_itineraries);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        itineraryAdapter = new ItineraryAdapter(this);
+        recyclerView.setAdapter(itineraryAdapter);
+        if (currentUser != null) {
+            itinerariesRef = FirebaseDatabase.getInstance().getReference()
+                    .child("users")
+                    .child(currentUser.getUid())
+                    .child("itineraries");
+
+            loadItineraries();
+        }
+    }
+    private void loadItineraries() {
+        itinerariesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                List<ItineraryModel> itineraryList = new ArrayList<>();
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    ItineraryModel itinerary = snapshot.getValue(ItineraryModel.class);
+                    if (itinerary != null) {
+                        itineraryList.add(itinerary);
+                    }
+                }
+
+                // Sort by creation date (newest first)
+                Collections.sort(itineraryList, (i1, i2) ->
+                        Long.compare(i2.getCreatedAt(), i1.getCreatedAt()));
+
+                // Update the adapter with the new list
+                itineraryAdapter.updateItineraries(itineraryList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(Dashboard.this,
+                        "Error loading itineraries: " + error.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here
@@ -114,4 +171,5 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             super.onBackPressed();
         }
     }
+
 }
