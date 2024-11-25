@@ -14,6 +14,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -39,7 +40,9 @@ public class Questionnaire_Interests extends AppCompatActivity {
         });
 
         // Initialize Firebase
-        databaseReference = FirebaseDatabase.getInstance().getReference("users").child("user_id").child("preferences");
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+
 
         // Initialize UI elements
         checkSightseeing = findViewById(R.id.check_sightseeing);
@@ -53,8 +56,14 @@ public class Questionnaire_Interests extends AppCompatActivity {
         submitButton = findViewById(R.id.button_submit);
 
         // Submit button click listener
+        if (userId != null) {
+            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(userId).child("preferences");
+        }
+
+        // Submit button click listener
         submitButton.setOnClickListener(v -> savePreferences());
     }
+
 
     private void savePreferences() {
         // Collect interests
@@ -96,9 +105,25 @@ public class Questionnaire_Interests extends AppCompatActivity {
 
 
         // Get data from Intent
+        if (databaseReference != null) {
+            Map<String, Object> preferencesMap = new HashMap<>();
+            preferencesMap.put("interests", selectedInterestsString);
+            preferencesMap.put("foodPreference", foodPreference);
+
+            databaseReference.setValue(preferencesMap)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(Questionnaire_Interests.this, "Preferences saved successfully!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(Questionnaire_Interests.this, "Failed to save preferences.", Toast.LENGTH_SHORT).show());
+        } else {
+            Toast.makeText(Questionnaire_Interests.this, "User is not logged in.", Toast.LENGTH_SHORT).show();
+        }
 
 
-        Intent intent = getIntent();
+
+
+
+    Intent intent = getIntent();
         String location = intent.getStringExtra("LOCATION");
         int tripDuration = intent.getIntExtra("DURATION", 0);  // Default to 0 if not found
         String dateStart = intent.getStringExtra("STARTDATE");  // Use "STARTDATE" to match the putExtra key

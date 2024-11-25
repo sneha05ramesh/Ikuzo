@@ -1,6 +1,7 @@
 package com.example.ikuzo;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -13,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,8 +28,8 @@ public class EditProfileActivity extends AppCompatActivity {
     private DatabaseReference userRef;
     private ImageView editUsernameIcon, editPasswordIcon, editemailIcon;
     private LinearLayout editUsernameSection, editPasswordSection, editemailSection;
-    private EditText editUsernameField, editPasswordField;
-    private Button saveUsernameButton, savePasswordButton, changePictureButton;
+    private EditText editUsernameField, editPasswordField, editEmailField;
+    private Button saveUsernameButton, savePasswordButton, saveEmailButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +39,8 @@ public class EditProfileActivity extends AppCompatActivity {
         makeContactPublicCheckbox = findViewById(R.id.make_contact_public_checkbox);
 
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        String userId = mAuth.getCurrentUser().getUid();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String userId = currentUser.getUid();
         userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
 
         // Load current value for the checkbox
@@ -60,8 +64,7 @@ public class EditProfileActivity extends AppCompatActivity {
                     .addOnFailureListener(e -> Toast.makeText(EditProfileActivity.this, "Failed to update settings.", Toast.LENGTH_SHORT).show());
         });
 
-
-        //edit username, password and email
+        // Initialize views for username, email, and password editing
         editUsernameIcon = findViewById(R.id.edit_username_icon);
         editPasswordIcon = findViewById(R.id.edit_password_icon);
         editemailIcon = findViewById(R.id.edit_email_icon);
@@ -72,42 +75,103 @@ public class EditProfileActivity extends AppCompatActivity {
 
         editUsernameField = findViewById(R.id.edit_username_field);
         editPasswordField = findViewById(R.id.edit_password_field);
+        editEmailField = findViewById(R.id.edit_email_field);
 
         saveUsernameButton = findViewById(R.id.save_username_button);
         savePasswordButton = findViewById(R.id.save_password_button);
-        changePictureButton = findViewById(R.id.save_email_button);
+        saveEmailButton = findViewById(R.id.save_email_button);
 
+        // Toggle visibility of sections
         editUsernameIcon.setOnClickListener(v -> toggleVisibility(editUsernameSection));
-
-//        saveUsernameButton.setOnClickListener(v -> {
-//            String newUsername = editUsernameField.getText().toString();
-//            if (!newUsername.isEmpty()) {
-//                userRef.child("username").setValue(newUsername);
-//                Toast.makeText(this, "Username updated", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
-        // Toggle password edit section
         editPasswordIcon.setOnClickListener(v -> toggleVisibility(editPasswordSection));
-
-        // Save password
-//        savePasswordButton.setOnClickListener(v -> {
-//            String newPassword = editPasswordField.getText().toString();
-//            if (!newPassword.isEmpty()) {
-//                userRef.child("password").setValue(newPassword);  // Save password
-//                Toast.makeText(this, "Password updated", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
         editemailIcon.setOnClickListener(v -> toggleVisibility(editemailSection));
 
+        // Handle saving username
+        saveUsernameButton.setOnClickListener(v -> {
+            String newUsername = editUsernameField.getText().toString().trim();
+            if (!newUsername.isEmpty()) {
+                updateUsername(newUsername);
+            } else {
+                Toast.makeText(this, "Username cannot be empty", Toast.LENGTH_SHORT).show();
+            }
+        });
 
+        // Handle saving email
+        saveEmailButton.setOnClickListener(v -> {
+            String newEmail = editEmailField.getText().toString().trim();
+            if (!newEmail.isEmpty()) {
+                updateEmail(newEmail);
+            } else {
+                Toast.makeText(this, "Email cannot be empty", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Handle saving password
+        savePasswordButton.setOnClickListener(v -> {
+            String newPassword = editPasswordField.getText().toString().trim();
+            if (!newPassword.isEmpty() && newPassword.length() >= 6) {
+                updatePassword(newPassword);
+            } else {
+                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
     private void toggleVisibility(View section) {
         if (section.getVisibility() == View.GONE) {
             section.setVisibility(View.VISIBLE);
         } else {
             section.setVisibility(View.GONE);
+        }
+    }
+
+    // Method to update username
+    private void updateUsername(String newUsername) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            currentUser.updateProfile(new UserProfileChangeRequest.Builder()
+                            .setDisplayName(newUsername)
+                            .build())
+                    .addOnSuccessListener(aVoid -> {
+                        userRef.child("username").setValue(newUsername);
+                        Toast.makeText(EditProfileActivity.this, "Username updated successfully.", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(EditProfileActivity.this, "Failed to update username.", Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    // Method to update email
+    private void updateEmail(String newEmail) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            currentUser.updateEmail(newEmail)
+                    .addOnSuccessListener(aVoid -> {
+                        userRef.child("email").setValue(newEmail);
+                        Toast.makeText(EditProfileActivity.this, "Email updated successfully.", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        String errorMessage = "Failed to update email. " + e.getMessage();
+                        Log.e("EditProfile", errorMessage); // Log the error
+                        Toast.makeText(EditProfileActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    // Method to update password
+    private void updatePassword(String newPassword) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            currentUser.updatePassword(newPassword)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(EditProfileActivity.this, "Password updated successfully.", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        String errorMessage = "Failed to update password. " + e.getMessage();
+                        Log.e("EditProfile", errorMessage); // Log the error
+                        Toast.makeText(EditProfileActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                    });
         }
     }
 }

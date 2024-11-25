@@ -16,10 +16,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -28,10 +28,10 @@ import java.util.List;
 public class Profile extends AppCompatActivity {
 
     private ImageView profilePicture;
-    private TextView profileName, profileTag, profileEmail; // Added profileEmail
+    private TextView profileName, profileTag, profileEmail, profileInterests, profileFoodPreference;
     private Button editAccountButton;
     private FirebaseAuth mAuth;
-    private DatabaseReference visitedLocationsRef;
+    private DatabaseReference userRef, preferencesRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +42,9 @@ public class Profile extends AppCompatActivity {
         profilePicture = findViewById(R.id.profile_picture);
         profileName = findViewById(R.id.profile_name);
         profileTag = findViewById(R.id.profile_tag);
-        profileEmail = findViewById(R.id.profile_email); // Initialize email TextView
+        profileEmail = findViewById(R.id.profile_email);
+        profileInterests = findViewById(R.id.profile_interests); // New TextView for Interests
+        profileFoodPreference = findViewById(R.id.profile_food_preference); // New TextView for Food Preference
         editAccountButton = findViewById(R.id.edit_account_button);
 
         mAuth = FirebaseAuth.getInstance();
@@ -56,9 +58,7 @@ public class Profile extends AppCompatActivity {
             profileName.setText(displayName); // Set user name on Profile
 
             // Firebase reference for user data
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference()
-                    .child("users")
-                    .child(currentUser.getUid());
+            userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
 
             // Fetch user settings
             userRef.addValueEventListener(new ValueEventListener() {
@@ -84,8 +84,11 @@ public class Profile extends AppCompatActivity {
                 }
             });
 
-            // Firebase reference for visited locations
-            visitedLocationsRef = userRef.child("visitedLocations");
+            // Reference to preferences node for the current user
+            preferencesRef = userRef.child("preferences");
+
+            // Load user preferences (interests, food preference, etc.)
+            loadPreferences();
 
             // Load visited locations
             loadVisitedLocations();
@@ -105,9 +108,38 @@ public class Profile extends AppCompatActivity {
         });
     }
 
+    private void loadPreferences() {
+        preferencesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Retrieve the saved preferences (interests and food preference)
+                String interests = snapshot.child("interests").getValue(String.class);
+                String foodPreference = snapshot.child("foodPreference").getValue(String.class);
 
-    // Method to load visited locations from Firebase
+                // Set preferences to the profile UI
+                if (interests != null) {
+                    profileInterests.setText("Interests: " + interests);
+                } else {
+                    profileInterests.setText("Interests: Not set");
+                }
+
+                if (foodPreference != null) {
+                    profileFoodPreference.setText("Food Preference: " + foodPreference);
+                } else {
+                    profileFoodPreference.setText("Food Preference: Not set");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("FirebaseError", "Failed to load preferences: " + error.getMessage());
+                Toast.makeText(Profile.this, "Failed to load preferences", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void loadVisitedLocations() {
+        DatabaseReference visitedLocationsRef = userRef.child("visitedLocations");
         visitedLocationsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -132,7 +164,6 @@ public class Profile extends AppCompatActivity {
         });
     }
 
-    // Method to update the UI with visited locations
     private void updateVisitedLocationsUI(List<String> visitedLocationsList) {
         LinearLayout visitedLocationsLayout = findViewById(R.id.visited_locations_layout);
         visitedLocationsLayout.removeAllViews(); // Clear any previous views
