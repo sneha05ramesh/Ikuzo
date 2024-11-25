@@ -91,37 +91,32 @@ public class Questionnaire_Interests extends AppCompatActivity {
         int selectedFoodId = radioGroupFood.getCheckedRadioButtonId();
         String foodPreference = selectedFoodId != -1 ? ((RadioButton) findViewById(selectedFoodId)).getText().toString() : "No preference";
 
-//        // Save data to Firebase
-//        databaseReference.child("interests").setValue(interests);
-//        databaseReference.child("foodPreference").setValue(foodPreference);
-//        databaseReference.child("transportPreference").setValue(transportPreference)
-//                .addOnSuccessListener(aVoid -> {
-//                    Toast.makeText(Questionnaire_Interests.this, "Preferences saved successfully!", Toast.LENGTH_SHORT).show();
-//                    // Navigate to the next screen (e.g., recommendations page)
-//
-//
-//                })
-//                .addOnFailureListener(e -> Toast.makeText(Questionnaire_Interests.this, "Failed to save preferences.", Toast.LENGTH_SHORT).show());
-
-
-        // Get data from Intent
+        // Get data from Firebase
         if (databaseReference != null) {
-            Map<String, Object> preferencesMap = new HashMap<>();
-            preferencesMap.put("interests", selectedInterestsString);
-            preferencesMap.put("foodPreference", foodPreference);
+            // Fetch existing preferences
+            databaseReference.get().addOnSuccessListener(snapshot -> {
+                // Existing preferences
+                String existingInterests = snapshot.child("interests").getValue(String.class);
+                String existingFoodPreference = snapshot.child("foodPreference").getValue(String.class);
 
-            databaseReference.setValue(preferencesMap)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(Questionnaire_Interests.this, "Preferences saved successfully!", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(Questionnaire_Interests.this, "Failed to save preferences.", Toast.LENGTH_SHORT).show());
+                // Merge the new preferences with the existing ones
+                Map<String, Object> preferencesMap = new HashMap<>();
+                preferencesMap.put("interests", existingInterests != null ? existingInterests + ", " + selectedInterestsString : selectedInterestsString);
+                preferencesMap.put("foodPreference", existingFoodPreference != null ? existingFoodPreference + ", " + foodPreference : foodPreference);
+
+                // Update Firebase with merged preferences
+                databaseReference.updateChildren(preferencesMap)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(Questionnaire_Interests.this, "Preferences saved successfully!", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(Questionnaire_Interests.this, "Failed to save preferences.", Toast.LENGTH_SHORT).show());
+            }).addOnFailureListener(e -> {
+                // Handle failure to fetch existing preferences
+                Toast.makeText(Questionnaire_Interests.this, "Failed to load existing preferences.", Toast.LENGTH_SHORT).show();
+            });
         } else {
             Toast.makeText(Questionnaire_Interests.this, "User is not logged in.", Toast.LENGTH_SHORT).show();
         }
-
-
-
-
 
     Intent intent = getIntent();
         String location = intent.getStringExtra("LOCATION");

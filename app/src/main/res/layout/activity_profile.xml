@@ -34,6 +34,15 @@
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp" />
 
+        <TextView
+            android:id="@+id/profile_mobile_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mobile Number"
+            android:textSize="16sp"
+            android:layout_marginTop="4dp"
+            android:layout_gravity="center" />
+
         <!-- Email (Visible if allowed) -->
         <TextView
             android:id="@+id/profile_email"
