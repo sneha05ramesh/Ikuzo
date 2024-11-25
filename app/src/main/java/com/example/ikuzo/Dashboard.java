@@ -2,12 +2,14 @@ package com.example.ikuzo;
 
 import android.app.appsearch.SearchResult;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
@@ -137,7 +139,17 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         searchView = findViewById(R.id.search_view);
         searchResultsRecyclerView = findViewById(R.id.search_results_recycler_view);
         searchResults = new ArrayList<>();
+        ImageView searchIcon = searchView.findViewById(androidx.appcompat.R.id.search_mag_icon);
+        if (searchIcon != null) {
+            searchIcon.setColorFilter(Color.BLACK);
+        }
 
+        // Set search text color
+        EditText searchEditText = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        if (searchEditText != null) {
+            searchEditText.setTextColor(Color.BLACK);
+            searchEditText.setHintTextColor(Color.GRAY);
+        }
         // Setup RecyclerView
         searchResultsAdapter = new SearchResultsAdapter(searchResults);
         searchResultsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
