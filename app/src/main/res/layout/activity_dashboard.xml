@@ -24,7 +24,16 @@
                 android:background="?attr/colorPrimary"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:title="Dashboard">
+
+                <androidx.appcompat.widget.SearchView
+                    android:id="@+id/searchView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:queryHint="Search by user or destinations"
+                    android:iconifiedByDefault="true" />
+            </androidx.appcompat.widget.Toolbar>
 
             <TextView
                 android:id="@+id/welcomeText"
@@ -59,6 +68,13 @@
                 app:layout_constraintTop_toBottomOf="@id/userInfo"
                 app:layout_constraintBottom_toBottomOf="parent"/>
 
+            <!-- Add a ListView for search suggestions -->
+            <ListView
+                android:id="@+id/listViewSearchResults"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -69,7 +85,7 @@
             android:layout_margin="16dp"
             android:src="@drawable/ic_plus_button"
             android:contentDescription="Add Trip Button"
-            app:backgroundTint="@color/red"
+            app:backgroundTint="#6750A4"
             app:tint="@android:color/white"
             app:fabSize="normal"
             app:elevation="6dp"/>

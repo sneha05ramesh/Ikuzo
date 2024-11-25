@@ -83,4 +83,5 @@ public class ItineraryModel implements Parcelable {
             return new ItineraryModel[size];
         }
     };
+
 }
