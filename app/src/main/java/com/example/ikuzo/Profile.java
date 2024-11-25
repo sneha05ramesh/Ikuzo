@@ -62,10 +62,12 @@ public class Profile extends AppCompatActivity {
             // Fetch details for the user whose profile was clicked
             userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
             loadUserProfile(userId);
+            editAccountButton.setVisibility(View.GONE); // Hide edit button for other users
         } else if (currentUser != null) {
             // Existing code to handle current user's profile
             userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
             loadUserProfile(currentUser.getUid()); // Load current user's profile
+            editAccountButton.setVisibility(View.VISIBLE); // Show edit button for current user
         }
 
         // Set default profile data (can be replaced with Firebase data later)
