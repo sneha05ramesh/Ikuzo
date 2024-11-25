@@ -23,12 +23,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Profile extends AppCompatActivity {
 
     private ImageView profilePicture;
-    private TextView profileName, profileTag, profileEmail, profileInterests, profileFoodPreference;
+    private TextView profileName, profileTag, profileEmail, profileMobileNumber,profileInterests, profileFoodPreference;
     private Button editAccountButton;
     private FirebaseAuth mAuth;
     private DatabaseReference userRef, preferencesRef;
@@ -43,6 +45,7 @@ public class Profile extends AppCompatActivity {
         profileName = findViewById(R.id.profile_name);
         profileTag = findViewById(R.id.profile_tag);
         profileEmail = findViewById(R.id.profile_email);
+        profileMobileNumber = findViewById(R.id.profile_mobile_number);
         profileInterests = findViewById(R.id.profile_interests); // New TextView for Interests
         profileFoodPreference = findViewById(R.id.profile_food_preference); // New TextView for Food Preference
         editAccountButton = findViewById(R.id.edit_account_button);
@@ -85,7 +88,8 @@ public class Profile extends AppCompatActivity {
                 if (snapshot.exists()) {
                     // Populate profile details from the snapshot
                     String displayName = snapshot.child("username").getValue(String.class);
-                    String email = snapshot.child("email").getValue(String.class);
+                    String email = "Email: " + snapshot.child("email").getValue(String.class);
+                    String mobileNumber = "Mobile: " + snapshot.child("mobile").getValue(String.class);
                     Boolean makeContactDetailsPublic = snapshot.child("makeContactDetailsPublic").getValue(Boolean.class);
 
                     // Set user name on Profile
@@ -95,8 +99,13 @@ public class Profile extends AppCompatActivity {
                     if (makeContactDetailsPublic != null && makeContactDetailsPublic) {
                         profileEmail.setVisibility(View.VISIBLE);
                         profileEmail.setText(email != null ? email : "No Email");
+                        if (mobileNumber != null) {
+                            profileMobileNumber.setVisibility(View.VISIBLE);
+                            profileMobileNumber.setText(mobileNumber);
+                        }
                     } else {
                         profileEmail.setVisibility(View.GONE);
+                        profileMobileNumber.setVisibility(View.GONE);
                     }
 
                     // Reference to preferences node for the user
@@ -126,15 +135,34 @@ public class Profile extends AppCompatActivity {
                 String interests = snapshot.child("interests").getValue(String.class);
                 String foodPreference = snapshot.child("foodPreference").getValue(String.class);
 
-                // Set preferences to the profile UI
+                // Remove duplicates and trim spaces for interests
                 if (interests != null) {
-                    profileInterests.setText("Interests: " + interests);
+                    // Split by comma, trim spaces, add to a set to remove duplicates, and then join back into a string
+                    String[] interestArray = interests.split(",");
+                    Set<String> uniqueInterests = new HashSet<>();
+
+                    for (String interest : interestArray) {
+                        uniqueInterests.add(interest.trim());  // Trim spaces to ensure uniqueness
+                    }
+
+                    String uniqueInterestsString = String.join(", ", uniqueInterests);
+                    profileInterests.setText("Interests: " + uniqueInterestsString);
                 } else {
                     profileInterests.setText("Interests: Not set");
                 }
 
+                // Remove duplicates and trim spaces for food preferences
                 if (foodPreference != null) {
-                    profileFoodPreference.setText("Food Preference: " + foodPreference);
+                    // Split by comma, trim spaces, add to a set to remove duplicates, and then join back into a string
+                    String[] foodPreferenceArray = foodPreference.split(",");
+                    Set<String> uniqueFoodPreferences = new HashSet<>();
+
+                    for (String food : foodPreferenceArray) {
+                        uniqueFoodPreferences.add(food.trim()); // Trim spaces to ensure uniqueness
+                    }
+
+                    String uniqueFoodPreferencesString = String.join(", ", uniqueFoodPreferences);
+                    profileFoodPreference.setText("Food Preference: " + uniqueFoodPreferencesString);
                 } else {
                     profileFoodPreference.setText("Food Preference: Not set");
                 }
@@ -148,21 +176,24 @@ public class Profile extends AppCompatActivity {
         });
     }
 
+
     private void loadVisitedLocations() {
         DatabaseReference visitedLocationsRef = userRef.child("visitedLocations");
         visitedLocationsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<String> visitedLocationsList = new ArrayList<>();
+                Set<String> visitedLocationsSet = new HashSet<>();
 
-                // Retrieve the visited locations from Firebase
+                // Retrieve the visited locations from Firebase and add them to the set (automatically removing duplicates)
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String destination = snapshot.child("destination").getValue(String.class);
                     if (destination != null) {
-                        visitedLocationsList.add(destination);
+                        visitedLocationsSet.add(destination);
                     }
                 }
 
+                // Convert the set back to a list if needed for displaying in the UI
+                List<String> visitedLocationsList = new ArrayList<>(visitedLocationsSet);
                 updateVisitedLocationsUI(visitedLocationsList);
             }
 
@@ -173,6 +204,7 @@ public class Profile extends AppCompatActivity {
             }
         });
     }
+
 
     private void updateVisitedLocationsUI(List<String> visitedLocationsList) {
         LinearLayout visitedLocationsLayout = findViewById(R.id.visited_locations_layout);
