@@ -26,10 +26,10 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private CheckBox makeContactPublicCheckbox;
     private DatabaseReference userRef;
-    private ImageView editUsernameIcon, editPasswordIcon, editemailIcon;
-    private LinearLayout editUsernameSection, editPasswordSection, editemailSection;
-    private EditText editUsernameField, editPasswordField, editEmailField;
-    private Button saveUsernameButton, savePasswordButton, saveEmailButton;
+    private ImageView editUsernameIcon, editPasswordIcon, editemailIcon, editMobileIcon;
+    private LinearLayout editUsernameSection, editPasswordSection, editemailSection, editMobileSection;
+    private EditText editUsernameField, editPasswordField, editEmailField, editMobileField;
+    private Button saveUsernameButton, savePasswordButton, saveEmailButton, saveMobileButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,23 +68,28 @@ public class EditProfileActivity extends AppCompatActivity {
         editUsernameIcon = findViewById(R.id.edit_username_icon);
         editPasswordIcon = findViewById(R.id.edit_password_icon);
         editemailIcon = findViewById(R.id.edit_email_icon);
+        editMobileIcon = findViewById(R.id.edit_mobile_icon);
 
         editUsernameSection = findViewById(R.id.edit_username_section);
         editPasswordSection = findViewById(R.id.edit_password_section);
         editemailSection = findViewById(R.id.edit_email_section);
+        editMobileSection = findViewById(R.id.edit_mobile_section);
 
         editUsernameField = findViewById(R.id.edit_username_field);
         editPasswordField = findViewById(R.id.edit_password_field);
         editEmailField = findViewById(R.id.edit_email_field);
+        editMobileField = findViewById(R.id.edit_mobile_field);
 
         saveUsernameButton = findViewById(R.id.save_username_button);
         savePasswordButton = findViewById(R.id.save_password_button);
         saveEmailButton = findViewById(R.id.save_email_button);
+        saveMobileButton = findViewById(R.id.save_mobile_button);
 
         // Toggle visibility of sections
         editUsernameIcon.setOnClickListener(v -> toggleVisibility(editUsernameSection));
         editPasswordIcon.setOnClickListener(v -> toggleVisibility(editPasswordSection));
         editemailIcon.setOnClickListener(v -> toggleVisibility(editemailSection));
+        editMobileIcon.setOnClickListener(v -> toggleVisibility(editMobileSection));
 
         // Handle saving username
         saveUsernameButton.setOnClickListener(v -> {
@@ -103,6 +108,16 @@ public class EditProfileActivity extends AppCompatActivity {
                 updateEmail(newEmail);
             } else {
                 Toast.makeText(this, "Email cannot be empty", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Handle saving mobile
+        saveMobileButton.setOnClickListener(v -> {
+            String newMobile = editMobileField.getText().toString().trim();
+            if (!newMobile.isEmpty()) {
+                updateMobile(newMobile);
+            } else {
+                Toast.makeText(this, "Mobile cannot be empty", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -158,6 +173,22 @@ public class EditProfileActivity extends AppCompatActivity {
                     });
         }
     }
+
+    //Method to update mobile
+    private void updateMobile(String newMobile) {
+        // Update the mobile number in Firebase Database
+        userRef.child("mobile").setValue(newMobile)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(EditProfileActivity.this, "Mobile number updated successfully.", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    String errorMessage = "Failed to update mobile number. " + e.getMessage();
+                    Log.e("EditProfile", errorMessage); // Log the error
+                    Toast.makeText(EditProfileActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
 
     // Method to update password
     private void updatePassword(String newPassword) {

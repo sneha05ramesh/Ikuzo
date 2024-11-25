@@ -170,6 +170,59 @@
                 android:padding="8dp" />
         </LinearLayout>
 
+        <!-- Edit Mobile -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/label_mobile"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Mobile"
+                android:textSize="16sp"
+                android:textColor="#333" />
+
+            <ImageView
+                android:id="@+id/edit_mobile_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_edit"
+                android:contentDescription="Edit Mobile"
+                android:padding="4dp"
+                android:clickable="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/edit_mobile_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
+
+            <EditText
+                android:id="@+id/edit_mobile_field"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Enter new mobile number"
+                android:background="@drawable/edittext_background"
+                android:padding="8dp" />
+
+            <Button
+                android:id="@+id/save_mobile_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save"
+                android:padding="8dp" />
+        </LinearLayout>
+
         <CheckBox
             android:id="@+id/make_contact_public_checkbox"
             android:layout_width="wrap_content"
