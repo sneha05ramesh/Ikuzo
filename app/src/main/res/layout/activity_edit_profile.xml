@@ -1,113 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#f9f9f9">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Profile Picture (Optional) -->
-        <ImageView
-            android:id="@+id/profile_picture"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_person"
-            android:contentDescription="Profile Picture"
-            android:scaleType="centerCrop"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Name with Edit Icon -->
+        <!-- Edit Username Section -->
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
 
             <TextView
-                android:id="@+id/profile_name"
-                android:layout_width="wrap_content"
+                android:id="@+id/label_username"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="User Name"
-                android:textSize="20sp"
-                android:layout_marginEnd="8dp"/>
+                android:layout_weight="1"
+                android:text="Username"
+                android:textSize="16sp"
+                android:textColor="#333" />
 
             <ImageView
-                android:id="@+id/edit_name_icon"
+                android:id="@+id/edit_username_icon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_edit"
-                android:contentDescription="Edit Name"
-                android:layout_gravity="center_vertical"/>
+                android:contentDescription="Edit Username"
+                android:padding="4dp"
+                android:clickable="true" />
         </LinearLayout>
 
-        <!-- Edit Name Field -->
-        <EditText
-            android:id="@+id/edit_name_field"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter New Name"
-            android:inputType="textPersonName"
-            android:visibility="gone"
-            android:layout_marginTop="8dp"/>
-
-        <!-- Save Name Button -->
-        <Button
-            android:id="@+id/save_name_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Save Name"
-            android:visibility="gone"
-            android:layout_marginTop="8dp"/>
-
-        <!-- Change Password Section -->
         <LinearLayout
-            android:id="@+id/change_password_section"
-            android:orientation="vertical"
+            android:id="@+id/edit_username_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:layout_marginTop="16dp">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
 
             <EditText
-                android:id="@+id/new_password_field"
-                android:layout_width="match_parent"
+                android:id="@+id/edit_username_field"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:hint="Enter New Password"
-                android:inputType="textPassword"
-                android:layout_marginBottom="8dp" />
+                android:layout_weight="1"
+                android:hint="Enter new username"
+                android:background="@drawable/edittext_background"
+                android:padding="8dp" />
+
+            <Button
+                android:id="@+id/save_username_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <!-- Edit Password Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/label_password"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Password"
+                android:textSize="16sp"
+                android:textColor="#333" />
+
+            <ImageView
+                android:id="@+id/edit_password_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_edit"
+                android:contentDescription="Edit Password"
+                android:padding="4dp"
+                android:clickable="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/edit_password_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
+
+            <EditText
+                android:id="@+id/edit_password_field"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Enter new password"
+                android:background="@drawable/edittext_background"
+                android:padding="8dp"
+                android:inputType="textPassword" />
 
             <Button
                 android:id="@+id/save_password_button"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Save Password" />
+                android:text="Save"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <!-- Edit Email Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/label_email"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Email"
+                android:textSize="16sp"
+                android:textColor="#333" />
+
+            <ImageView
+                android:id="@+id/edit_email_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_edit"
+                android:contentDescription="Edit Email"
+                android:padding="4dp"
+                android:clickable="true" />
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:id="@+id/edit_email_section"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
 
-            <TextView
-                android:id="@+id/password"
+            <EditText
+                android:id="@+id/edit_email_field"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Enter new email"
+                android:background="@drawable/edittext_background"
+                android:padding="8dp" />
+
+            <Button
+                android:id="@+id/save_email_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Password"
-                android:textSize="20sp"
-                android:layout_marginTop="15dp"
-                android:layout_marginEnd="8dp"/>
+                android:text="Save"
+                android:padding="8dp" />
+        </LinearLayout>
 
-            <!-- Change Password Button -->
-            <ImageView
-                android:id="@+id/change_password_icon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginTop="16dp"
-                android:contentDescription="Change Password"
-                android:src="@drawable/ic_edit" />
-    </LinearLayout>
+        <CheckBox
+            android:id="@+id/make_contact_public_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Make contact details public"
+            android:layout_marginTop="16dp"
+            android:checked="false" />
+
+
+
+        <!--        &lt;!&ndash; Edit Profile Picture Section &ndash;&gt;-->
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:gravity="center_vertical"-->
+<!--            android:padding="8dp">-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/label_profile_picture"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_weight="1"-->
+<!--                android:text="Profile Picture"-->
+<!--                android:textSize="16sp"-->
+<!--                android:textColor="#333" />-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/edit_picture_icon"-->
+<!--                android:layout_width="24dp"-->
+<!--                android:layout_height="24dp"-->
+<!--                android:src="@drawable/ic_edit"-->
+<!--                android:contentDescription="Edit Profile Picture"-->
+<!--                android:padding="4dp"-->
+<!--                android:clickable="true" />-->
+<!--        </LinearLayout>-->
+
+<!--        <LinearLayout-->
+<!--            android:id="@+id/edit_picture_section"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:visibility="gone"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:gravity="center_vertical"-->
+<!--            android:padding="8dp">-->
+
+<!--            <Button-->
+<!--                android:id="@+id/change_picture_button"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="Change Picture"-->
+<!--                android:padding="8dp" />-->
+<!--        </LinearLayout>-->
 
     </LinearLayout>
 </ScrollView>

@@ -28,8 +28,18 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="User Name"
-            android:textSize="20sp"
-            android:layout_marginBottom="8dp" />
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/profile_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textSize="16sp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="8dp"
+            android:layout_gravity="center" />
+
 
         <!-- Tag -->
         <TextView
@@ -39,35 +49,32 @@
             android:layout_gravity="center"
             android:text="User Tag"
             android:textSize="16sp"
-             />
+            android:layout_marginBottom="16dp" />
 
-        <!-- Saved Itineraries Placeholder -->
+        <!-- Visited Locations Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Visited Locations"
+            android:textSize="16sp"
+            android:padding="8dp"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="5dp" />
 
+        <LinearLayout
+            android:id="@+id/visited_locations_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="5dp">
+        </LinearLayout>
+
+        <!-- Edit Account Button -->
         <Button
             android:id="@+id/edit_account_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="6dp"
             android:text="Edit/Manage Account" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Saved Itineraries"
-            android:textSize="16sp"
-            android:padding="8dp"
-            android:layout_marginTop="20dp"
-            android:textColor="@android:color/black" />
-
-        <!-- Placeholder content -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="No saved itineraries yet."
-            android:gravity="center" />
-
-        <!-- Edit Account Button -->
-
     </LinearLayout>
 </ScrollView>
