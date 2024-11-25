@@ -49,52 +49,20 @@ public class Profile extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
+
         // Get the current user
         FirebaseUser currentUser = mAuth.getCurrentUser();
+        String userId = getIntent().getStringExtra("USER_ID"); // Check for user ID
 
-        if (currentUser != null) {
-            // User is signed in
-            String displayName = currentUser.getDisplayName();
-            profileName.setText(displayName); // Set user name on Profile
-
-            // Firebase reference for user data
+        // If user ID is not null, fetch the corresponding user's details
+        if (userId != null) {
+            // Fetch details for the user whose profile was clicked
+            userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
+            loadUserProfile(userId);
+        } else if (currentUser != null) {
+            // Existing code to handle current user's profile
             userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
-
-            // Fetch user settings
-            userRef.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    // Get the makeContactDetailsPublic value
-                    Boolean makeContactDetailsPublic = snapshot.child("makeContactDetailsPublic").getValue(Boolean.class);
-                    String email = currentUser.getEmail();
-
-                    if (makeContactDetailsPublic != null && makeContactDetailsPublic) {
-                        // Show email if the setting is enabled
-                        profileEmail.setVisibility(View.VISIBLE);
-                        profileEmail.setText(email);
-                    } else {
-                        // Hide email if the setting is disabled
-                        profileEmail.setVisibility(View.GONE);
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Log.e("FirebaseError", "Failed to load user settings: " + error.getMessage());
-                }
-            });
-
-            // Reference to preferences node for the current user
-            preferencesRef = userRef.child("preferences");
-
-            // Load user preferences (interests, food preference, etc.)
-            loadPreferences();
-
-            // Load visited locations
-            loadVisitedLocations();
-        } else {
-            // Log if no user is signed in
-            Log.d("UserInfo", "No user is currently logged in.");
+            loadUserProfile(currentUser.getUid()); // Load current user's profile
         }
 
         // Set default profile data (can be replaced with Firebase data later)
@@ -107,7 +75,49 @@ public class Profile extends AppCompatActivity {
             startActivity(intent);
         });
     }
+    // Method to load user profile
+    private void loadUserProfile(String userId) {
+        userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId); // Initialize userRef
+        userRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Check if the user snapshot exists
+                if (snapshot.exists()) {
+                    // Populate profile details from the snapshot
+                    String displayName = snapshot.child("username").getValue(String.class);
+                    String email = snapshot.child("email").getValue(String.class);
+                    Boolean makeContactDetailsPublic = snapshot.child("makeContactDetailsPublic").getValue(Boolean.class);
 
+                    // Set user name on Profile
+                    profileName.setText(displayName != null ? displayName : "No Name");
+
+                    // Handle email visibility
+                    if (makeContactDetailsPublic != null && makeContactDetailsPublic) {
+                        profileEmail.setVisibility(View.VISIBLE);
+                        profileEmail.setText(email != null ? email : "No Email");
+                    } else {
+                        profileEmail.setVisibility(View.GONE);
+                    }
+
+                    // Reference to preferences node for the user
+                    preferencesRef = userRef.child("preferences");
+
+                    // Load user preferences (interests, food preference, etc.)
+                    loadPreferences();
+
+                    // Load visited locations
+                    loadVisitedLocations();
+                } else {
+                    Log.d("UserInfo", "User does not exist.");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("FirebaseError", "Failed to load user profile: " + error.getMessage());
+            }
+        });
+    }
     private void loadPreferences() {
         preferencesRef.addValueEventListener(new ValueEventListener() {
             @Override

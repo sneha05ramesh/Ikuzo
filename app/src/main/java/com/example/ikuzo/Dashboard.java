@@ -36,6 +36,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Dashboard extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -264,33 +265,43 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                    // Get all required user fields
                     String userId = userSnapshot.getKey();
                     String email = userSnapshot.child("email").getValue(String.class);
+                    String username = userSnapshot.child("username").getValue(String.class);
 
                     // Check email match
-                    if (email != null && email.toLowerCase().contains(query)) {
+                    if ((email != null && email.toLowerCase().contains(query)) ||
+                            (username != null && username.toLowerCase().contains(query))) {
                         searchResults.add(new Dashboard.SearchResult(
                                 userId,
-                                email,
-                                "Email match",
+                                email != null ? email : username,
+                                "Email/Username match",
                                 null
                         ));
                     }
 
                     // Check visited locations
                     DataSnapshot locationsSnapshot = userSnapshot.child("visitedLocations");
-                    for (DataSnapshot locationSnapshot : locationsSnapshot.getChildren()) {
-                        String destination = locationSnapshot.child("destination").getValue(String.class);
-                        if (destination != null && destination.toLowerCase().contains(query)) {
-                            searchResults.add(new Dashboard.SearchResult(
-                                    userId,
-                                    email,
-                                    "Location match",
-                                    destination
-                            ));
+                    if (locationsSnapshot.exists() && locationsSnapshot.hasChildren()) {
+                        for (DataSnapshot locationSnapshot : locationsSnapshot.getChildren()) {
+                            String destination = locationSnapshot.child("destination").getValue(String.class);
+                            if (destination != null && destination.toLowerCase().contains(query)) {
+                                searchResults.add(new Dashboard.SearchResult(
+                                        userId,
+                                        email != null ? email : username,
+                                        "Location match",
+                                        destination
+                                ));
+                            }
                         }
                     }
                 }
+
+                // Remove duplicates if needed
+                List<Dashboard.SearchResult> uniqueResults = new ArrayList<>(new LinkedHashSet<>(searchResults));
+                searchResults.clear();
+                searchResults.addAll(uniqueResults);
 
                 searchResultsAdapter.notifyDataSetChanged();
 
@@ -309,6 +320,7 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             }
         });
     }
+
 
     // Model class for search results
     private static class SearchResult {
@@ -354,7 +366,7 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             // Handle click on search result
             holder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(Dashboard.this, Profile.class);
-                intent.putExtra("USER_ID", result.userId);
+                intent.putExtra("USER_ID", result.userId); // Pass the user ID
                 startActivity(intent);
             });
         }
