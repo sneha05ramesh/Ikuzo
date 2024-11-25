@@ -1,11 +1,15 @@
 package com.example.ikuzo;
 
+import android.app.appsearch.SearchResult;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +47,14 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
     private ItineraryAdapter itineraryAdapter;
     private DatabaseReference itinerariesRef;
 
+    private androidx.appcompat.widget.SearchView searchView;
+    private RecyclerView searchResultsRecyclerView;
+    private SearchResultsAdapter searchResultsAdapter;
+    private DatabaseReference usersRef;
+    private List<SearchResult> searchResults;
+
+    private TextView noResultsText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +85,9 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
+
+        // Initialize no results text view
+        noResultsText = findViewById(R.id.no_results_text);
 
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -114,6 +129,22 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
 
             loadItineraries();
         }
+
+        // Initialize Firebase references
+        usersRef = FirebaseDatabase.getInstance().getReference().child("users");
+
+        // Initialize search-related views
+        searchView = findViewById(R.id.search_view);
+        searchResultsRecyclerView = findViewById(R.id.search_results_recycler_view);
+        searchResults = new ArrayList<>();
+
+        // Setup RecyclerView
+        searchResultsAdapter = new SearchResultsAdapter(searchResults);
+        searchResultsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        searchResultsRecyclerView.setAdapter(searchResultsAdapter);
+
+        // Setup SearchView
+        setupSearchView();
     }
     private void loadItineraries() {
         itinerariesRef.addValueEventListener(new ValueEventListener() {
@@ -171,5 +202,165 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
             super.onBackPressed();
         }
     }
+    private void showNoResultsMessage() {
+        searchResultsRecyclerView.setVisibility(View.GONE);
+        noResultsText.setVisibility(View.VISIBLE);
+    }
 
+    private void hideNoResultsMessage() {
+        searchResultsRecyclerView.setVisibility(View.VISIBLE);
+        noResultsText.setVisibility(View.GONE);
+    }
+
+    // Also, let's add method to handle initial state and clearing
+    private void resetSearchUI() {
+        searchResults.clear();
+        searchResultsAdapter.notifyDataSetChanged();
+        searchResultsRecyclerView.setVisibility(View.GONE);
+        noResultsText.setVisibility(View.GONE);
+    }
+    private void setupSearchView() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                performSearch(query.toLowerCase().trim());
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.length() >= 2) {
+                    performSearch(newText.toLowerCase().trim());
+                } else {
+                    resetSearchUI();
+                }
+                return true;
+            }
+        });
+
+        // Add clear button listener
+        searchView.setOnCloseListener(() -> {
+            resetSearchUI();
+            return false;
+        });
+    }
+
+    private void performSearch(String query) {
+        searchResults.clear();
+
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                    String userId = userSnapshot.getKey();
+                    String email = userSnapshot.child("email").getValue(String.class);
+
+                    // Check email match
+                    if (email != null && email.toLowerCase().contains(query)) {
+                        searchResults.add(new Dashboard.SearchResult(
+                                userId,
+                                email,
+                                "Email match",
+                                null
+                        ));
+                    }
+
+                    // Check visited locations
+                    DataSnapshot locationsSnapshot = userSnapshot.child("visitedLocations");
+                    for (DataSnapshot locationSnapshot : locationsSnapshot.getChildren()) {
+                        String destination = locationSnapshot.child("destination").getValue(String.class);
+                        if (destination != null && destination.toLowerCase().contains(query)) {
+                            searchResults.add(new Dashboard.SearchResult(
+                                    userId,
+                                    email,
+                                    "Location match",
+                                    destination
+                            ));
+                        }
+                    }
+                }
+
+                searchResultsAdapter.notifyDataSetChanged();
+
+                // Show/hide no results message
+                if (searchResults.isEmpty()) {
+                    showNoResultsMessage();
+                } else {
+                    hideNoResultsMessage();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(Dashboard.this, "Search failed: " + databaseError.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Model class for search results
+    private static class SearchResult {
+        String userId;
+        String email;
+        String matchType;
+        String matchedLocation;
+
+        SearchResult(String userId, String email, String matchType, String matchedLocation) {
+            this.userId = userId;
+            this.email = email;
+            this.matchType = matchType;
+            this.matchedLocation = matchedLocation;
+        }
+    }
+    // Adapter for search results
+    private class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.ViewHolder> {
+        private List<Dashboard.SearchResult> results;
+
+        SearchResultsAdapter(List<Dashboard.SearchResult> results) {
+            this.results = results;
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.search_result_item, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Dashboard.SearchResult result = results.get(position);
+            holder.emailText.setText(result.email);
+
+            if (result.matchType.equals("Location match")) {
+                holder.matchTypeText.setText("Visited: " + result.matchedLocation);
+            } else {
+                holder.matchTypeText.setText("Email match");
+            }
+
+            // Handle click on search result
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(Dashboard.this, Profile.class);
+                intent.putExtra("USER_ID", result.userId);
+                startActivity(intent);
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return results.size();
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            TextView emailText;
+            TextView matchTypeText;
+
+            ViewHolder(@NonNull View itemView) {
+                super(itemView);
+                emailText = itemView.findViewById(R.id.result_email);
+                matchTypeText = itemView.findViewById(R.id.result_match_type);
+            }
+        }
+    }
 }

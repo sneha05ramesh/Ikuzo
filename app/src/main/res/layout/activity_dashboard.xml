@@ -27,12 +27,38 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:title="Dashboard">
 
-                <androidx.appcompat.widget.SearchView
-                    android:id="@+id/searchView"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:queryHint="Search by user or destinations"
-                    android:iconifiedByDefault="true" />
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.SearchView
+                        android:id="@+id/search_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:background="@drawable/search_background"
+                        app:iconifiedByDefault="false"
+                        app:queryHint="Search by email or location..."
+                        android:theme="@style/SearchViewStyle" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/search_results_recycler_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/no_results_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:text="No results found"
+                        android:visibility="gone" />
+
+                </LinearLayout>
             </androidx.appcompat.widget.Toolbar>
 
             <TextView
@@ -73,7 +99,9 @@
                 android:id="@+id/listViewSearchResults"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone" />
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/toolbar"
+                app:layout_constraintBottom_toBottomOf="@+id/toolbar"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
