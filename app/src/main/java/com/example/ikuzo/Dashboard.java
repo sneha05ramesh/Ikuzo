@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Dashboard extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -259,6 +260,8 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
     }
 
     private void performSearch(String query) {
+        // Use a Set to ensure uniqueness based on a composite key
+        Set<String> uniqueResultKeys = new LinkedHashSet<>();
         searchResults.clear();
 
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -270,15 +273,22 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
                     String email = userSnapshot.child("email").getValue(String.class);
                     String username = userSnapshot.child("username").getValue(String.class);
 
-                    // Check email match
+                    // Prefer username, fall back to email
+                    String displayName = username != null ? username : (email != null ? email : "Unknown");
+
+                    // Check email/username match
                     if ((email != null && email.toLowerCase().contains(query)) ||
                             (username != null && username.toLowerCase().contains(query))) {
-                        searchResults.add(new Dashboard.SearchResult(
-                                userId,
-                                email != null ? email : username,
-                                "Email/Username match",
-                                null
-                        ));
+                        String uniqueKey = userId + "_username";
+                        if (!uniqueResultKeys.contains(uniqueKey)) {
+                            searchResults.add(new Dashboard.SearchResult(
+                                    userId,
+                                    displayName,
+                                    "Email/Username match",
+                                    null
+                            ));
+                            uniqueResultKeys.add(uniqueKey);
+                        }
                     }
 
                     // Check visited locations
@@ -287,21 +297,20 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
                         for (DataSnapshot locationSnapshot : locationsSnapshot.getChildren()) {
                             String destination = locationSnapshot.child("destination").getValue(String.class);
                             if (destination != null && destination.toLowerCase().contains(query)) {
-                                searchResults.add(new Dashboard.SearchResult(
-                                        userId,
-                                        email != null ? email : username,
-                                        "Location match",
-                                        destination
-                                ));
+                                String uniqueKey = userId + "_" + destination;
+                                if (!uniqueResultKeys.contains(uniqueKey)) {
+                                    searchResults.add(new Dashboard.SearchResult(
+                                            userId,
+                                            displayName,
+                                            "Location match",
+                                            destination
+                                    ));
+                                    uniqueResultKeys.add(uniqueKey);
+                                }
                             }
                         }
                     }
                 }
-
-                // Remove duplicates if needed
-                List<Dashboard.SearchResult> uniqueResults = new ArrayList<>(new LinkedHashSet<>(searchResults));
-                searchResults.clear();
-                searchResults.addAll(uniqueResults);
 
                 searchResultsAdapter.notifyDataSetChanged();
 
@@ -322,16 +331,15 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
     }
 
 
-    // Model class for search results
     private static class SearchResult {
         String userId;
-        String email;
+        String displayName;  // Changed from email
         String matchType;
         String matchedLocation;
 
-        SearchResult(String userId, String email, String matchType, String matchedLocation) {
+        SearchResult(String userId, String displayName, String matchType, String matchedLocation) {
             this.userId = userId;
-            this.email = email;
+            this.displayName = displayName;
             this.matchType = matchType;
             this.matchedLocation = matchedLocation;
         }
@@ -355,18 +363,18 @@ public class Dashboard extends AppCompatActivity implements NavigationView.OnNav
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Dashboard.SearchResult result = results.get(position);
-            holder.emailText.setText(result.email);
+            holder.emailText.setText(result.displayName);  // Use displayName instead of email
 
             if (result.matchType.equals("Location match")) {
                 holder.matchTypeText.setText("Visited: " + result.matchedLocation);
             } else {
-                holder.matchTypeText.setText("Email match");
+                holder.matchTypeText.setText("Email/Username match");
             }
 
             // Handle click on search result
             holder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(Dashboard.this, Profile.class);
-                intent.putExtra("USER_ID", result.userId); // Pass the user ID
+                intent.putExtra("USER_ID", result.userId);
                 startActivity(intent);
             });
         }
